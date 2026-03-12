@@ -1,5 +1,7 @@
 package ecommerce.example.ecommerce.domain.user;
 
+import java.util.Objects;
+
 import jakarta.persistence.*;
 
 @Entity

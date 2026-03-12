@@ -1,17 +1,20 @@
-package ecommerce.example.ecommerce.dto;
+package ecommerce.example.ecommerce.application.dto;
 
-public class RegisterRequest {
+public class UserCommand {
 
     private String username;
     private String email;
     private String password;
+    private String role;
 
-    public RegisterRequest() {}
+    public UserCommand() {
+    }
 
-    public RegisterRequest(String username, String email, String password) {
+    public UserCommand(String username, String email, String password, String role) {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.role = role;
     }
 
     public String getUsername() {
@@ -36,5 +39,13 @@ public class RegisterRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

@@ -1,4 +1,4 @@
-package ecommerce.example.ecommerce.repository;
+package ecommerce.example.ecommerce.adapter.persistence;
 
 import ecommerce.example.ecommerce.domain.user.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
