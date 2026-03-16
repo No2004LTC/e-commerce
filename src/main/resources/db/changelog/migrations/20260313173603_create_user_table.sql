@@ -2,12 +2,14 @@
 
 -- changeset ltc:2026031301
 -- comment: Create users table with Role as Enum (No Foreign Key)
-CREATE TABLE users (
-                       id BIGINT AUTO_INCREMENT PRIMARY KEY,         -- @Id
-                       username VARCHAR(255) NOT NULL UNIQUE,        -- @Column(unique = true, nullable = false)
-                       email VARCHAR(255) NOT NULL UNIQUE,           -- @Column(unique = true, nullable = false)
-                       password VARCHAR(255) NOT NULL,               -- @Column(nullable = false)
-                       role VARCHAR(50) NOT NULL                     -- Enum Role được lưu dưới dạng String
+CREATE TABLE IF NOT EXISTS users (
+                                     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                     username VARCHAR(255) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role_id BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- rollback DROP TABLE users;
