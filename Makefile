@@ -68,13 +68,6 @@ new-migration:
 	echo "" >> $$filename; \
 	echo "-- changeset ltc:$${timestamp}" >> $$filename; \
 	echo "-- comment: $${desc}" >> $$filename; \
-	echo "CREATE TABLE users (" >> $$filename; \
-	echo "    id BIGINT AUTO_INCREMENT PRIMARY KEY," >> $$filename; \
-	echo "    username VARCHAR(255) NOT NULL UNIQUE," >> $$filename; \
-	echo "    email VARCHAR(255) NOT NULL UNIQUE," >> $$filename; \
-	echo "    password VARCHAR(255) NOT NULL," >> $$filename; \
-	echo "    role VARCHAR(50) NOT NULL" >> $$filename; \
-	echo ");" >> $$filename; \
 	echo "" >> $$filename; \
 	echo "-- rollback DROP TABLE users;" >> $$filename; \
 	echo "✅ Đã tạo: $$filename"; \
