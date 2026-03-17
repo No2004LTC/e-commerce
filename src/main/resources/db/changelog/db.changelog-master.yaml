@@ -1,5 +1,5 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/migrations/20260313173603_create_user_table.sql
+      file: classpath:db/changelog/migrations/20260313173603_create_user_table.sql
   - include:
-      file: db/changelog/migrations/202603161714_create_role_table.sql
+      file: classpath:db/changelog/migrations/202603161714_create_role_table.sql

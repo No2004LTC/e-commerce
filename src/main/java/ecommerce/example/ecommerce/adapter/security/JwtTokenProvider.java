@@ -26,10 +26,10 @@ public class JwtTokenProvider {
     /**
      * Chuyển đổi chuỗi Secret Key từ dạng Base64
      */
-    private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
+   private Key getSigningKey() {
+    // Thay vì dùng chuỗi text yếu, hãy dùng Keys.secretKeyFor để tạo key chuẩn 256-bit
+    return Keys.secretKeyFor(SignatureAlgorithm.HS256);
+}
 
     /**
      * Hàm công khai để tạo Token chỉ dựa vào tên người dùng .
