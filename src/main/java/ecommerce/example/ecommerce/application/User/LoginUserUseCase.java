@@ -1,8 +1,8 @@
 package ecommerce.example.ecommerce.application.User;
 
-import ecommerce.example.ecommerce.adapter.in.web.AuthResponse;
-import ecommerce.example.ecommerce.adapter.in.web.LoginRequest;
 import ecommerce.example.ecommerce.adapter.security.JwtTokenProvider;
+import ecommerce.example.ecommerce.adapter.web.Auth.AuthResponse;
+import ecommerce.example.ecommerce.adapter.web.Auth.LoginRequest;
 import ecommerce.example.ecommerce.application.common.UseCaseException;
 import ecommerce.example.ecommerce.domain.user.User;
 import ecommerce.example.ecommerce.domain.user.UserRepository;
@@ -40,6 +40,11 @@ public class LoginUserUseCase {
         // Generate JWT
         String token = jwtTokenProvider.generateToken(user.getUsername());
 
-        return new AuthResponse(token, user.getUsername(), user.getRole().getName());
+       return new AuthResponse(
+        user.getId().toString(), // Lấy ID từ DB trả về Postman
+        token, 
+        user.getUsername(), 
+        user.getRole().getName()
+    );
     }
 }

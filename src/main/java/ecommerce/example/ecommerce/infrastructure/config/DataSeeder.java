@@ -4,11 +4,13 @@ import ecommerce.example.ecommerce.adapter.persistence.RoleRepository;
 import ecommerce.example.ecommerce.adapter.persistence.User.UserJpaRepository;
 import ecommerce.example.ecommerce.domain.user.Role;
 import ecommerce.example.ecommerce.domain.user.User;
+import ecommerce.example.ecommerce.domain.user.UserId;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.jpa.repository.JpaRepository; // Cần thiết để ép kiểu
+import org.springframework.data.jpa.repository.JpaRepository;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -26,7 +28,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // 1. Khởi tạo Quyền (Roles)
+        // 1. Khởi tạo Quyền (Roles) - Giữ nguyên vì Role dùng Long/Identity
         Role adminRole = roleRepository.findByName("ROLE_ADMIN")
                 .orElseGet(() -> roleRepository.save(new Role("ROLE_ADMIN")));
 
@@ -37,13 +39,22 @@ public class DataSeeder implements CommandLineRunner {
         if (userJpaRepository.findByUsername("admin").isEmpty()) {
             String hashedPassword = passwordEncoder.encode("admin");
             
-            // Sử dụng Constructor 4 tham số mà bạn đã định nghĩa trong file User.java
-            User adminUser = new User("admin", "admin@example.com", hashedPassword, adminRole);
+            // QUAN TRỌNG: Bạn phải tạo UserId trước khi khởi tạo User
+            UserId adminId = UserId.random(); 
 
-            // GIẢI PHÁP TRIỆT ĐỂ: Ép kiểu về JpaRepository để Java không bị nhầm lẫn phương thức save
-            ((JpaRepository<User, Long>) userJpaRepository).save(adminUser);
+            // Sử dụng Constructor 5 tham số (bao gồm cả UserId)
+            User adminUser = new User(
+                adminId, 
+                "admin", 
+                "admin@example.com", 
+                hashedPassword, 
+                adminRole
+            );
+
+            // Không cần ép kiểu rườm rà nếu UserJpaRepository đã kế thừa JpaRepository<User, UserId>
+           ((JpaRepository<User, UserId>) userJpaRepository).save(adminUser);
             
-            System.out.println("✅ [DataSeeder] Tài khoản admin/admin đã được tạo thành công.");
+            System.out.println("✅ [DataSeeder] Tài khoản admin với UUID đã được tạo.");
         }
     }
 }

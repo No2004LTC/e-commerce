@@ -1,4 +1,4 @@
-package ecommerce.example.ecommerce.adapter.in.web;
+package ecommerce.example.ecommerce.adapter.web.Auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -15,6 +15,8 @@ public class RegisterRequest {
     private String password;
 
     // Getters and setters
+    
+
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
 

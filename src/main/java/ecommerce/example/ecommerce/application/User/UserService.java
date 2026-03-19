@@ -17,14 +17,14 @@ public class UserService {
 
     public User register(User user) {
         // simple pass-through; use cases handle validation
-        return repository.save(user);
+        return repository.persist(user);
     }
-
+    
     public Optional<User> findByUsername(String username) {
         return repository.findByUsername(username);
     }
 
     public Optional<User> findByEmail(String email) {
         return repository.findByEmail(email);
-    }
+    }   
 }

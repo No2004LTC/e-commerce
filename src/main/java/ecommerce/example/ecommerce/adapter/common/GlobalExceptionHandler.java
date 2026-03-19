@@ -1,4 +1,4 @@
-package ecommerce.example.ecommerce.adapter.in.web;
+package ecommerce.example.ecommerce.adapter.common;
 
 import ecommerce.example.ecommerce.application.common.UseCaseException;
 import org.springframework.http.ResponseEntity;

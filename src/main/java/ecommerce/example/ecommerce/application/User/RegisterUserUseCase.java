@@ -1,13 +1,15 @@
 package ecommerce.example.ecommerce.application.User;
 
-import ecommerce.example.ecommerce.adapter.in.web.AuthResponse;
-import ecommerce.example.ecommerce.adapter.in.web.RegisterRequest;
 import ecommerce.example.ecommerce.adapter.persistence.RoleRepository;
 import ecommerce.example.ecommerce.adapter.security.JwtTokenProvider;
+import ecommerce.example.ecommerce.adapter.web.Auth.AuthResponse;
+import ecommerce.example.ecommerce.adapter.web.Auth.RegisterRequest;
 import ecommerce.example.ecommerce.application.User.UserService;
 import ecommerce.example.ecommerce.application.common.UseCaseException;
 import ecommerce.example.ecommerce.domain.user.Role;
 import ecommerce.example.ecommerce.domain.user.User;
+import ecommerce.example.ecommerce.domain.user.UserId;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -49,7 +51,7 @@ public class RegisterUserUseCase {
         String hashedPassword = passwordEncoder.encode(request.getPassword());
 
         // Create user
-        User user = new User(request.getUsername(), request.getEmail(), hashedPassword, userRole);
+        User user = new User(UserId.random(), request.getUsername(), request.getEmail(), hashedPassword, userRole);
 
         // Save user
         User savedUser = userService.register(user);
@@ -57,6 +59,11 @@ public class RegisterUserUseCase {
         // Generate JWT
         String token = jwtTokenProvider.generateToken(savedUser.getUsername());
 
-        return new AuthResponse(token, savedUser.getUsername(), savedUser.getRole().getName());
+       return new AuthResponse(
+        savedUser.getId().toString(), 
+        token, 
+        savedUser.getUsername(), 
+        savedUser.getRole().getName()
+    );
     }
 }
