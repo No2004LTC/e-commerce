@@ -15,6 +15,9 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(name = "avatar_url") 
+    private String avatarUrl;
+
     @Column(nullable = false)
     private String password;
 
@@ -29,6 +32,7 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.avatarUrl = avatarUrl;
         this.role = role;
     }
 
@@ -41,6 +45,8 @@ public class User {
     public void setEmail(String email) { this.email = email; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
 }
