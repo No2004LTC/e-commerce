@@ -20,7 +20,6 @@ public interface UserJpaRepository extends JpaRepository<User,UserId>, UserRepos
     @Override
     Optional<User> findByEmail(String email);
     @Override
-    default User persist(User user) {
-        return save(user);
-    }
+    Optional<User> findById(UserId id);
+    
 }

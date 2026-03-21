@@ -3,8 +3,8 @@ package ecommerce.example.ecommerce.adapter.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,23 +13,32 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-
 @Component
 public class JwtTokenProvider {
 
-  @Value("${jwt.secret}")
-    private String secretKey;
+    // Key này sẽ được khởi tạo ngẫu nhiên trong bộ nhớ khi App chạy
+    private Key key;
 
-   @Value("${jwt.expiration}")
+    @Value("${jwt.expiration}")
     private long jwtExpiration;
 
     /**
-     * Chuyển đổi chuỗi Secret Key từ dạng Base64
+     * Khởi tạo Key ngẫu nhiên khi ứng dụng bắt đầu.
+     * Đảm bảo Key là duy nhất và cố định trong suốt vòng đời của Server.
      */
-   private Key getSigningKey() {
-    // Thay vì dùng chuỗi text yếu, hãy dùng Keys.secretKeyFor để tạo key chuẩn 256-bit
-    return Keys.secretKeyFor(SignatureAlgorithm.HS256);
-}
+    @PostConstruct
+    public void init() {
+        // Tạo key chuẩn 256-bit ngẫu nhiên cho thuật toán HS256
+        this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    }
+
+    /**
+     * Chuyển đổi chuỗi Secret Key từ dạng Base64
+     * (Trong trường hợp này, trả về Key ngẫu nhiên đã được tạo ở hàm init)
+     */
+    private Key getSigningKey() {
+        return this.key;
+    }
 
     /**
      * Hàm công khai để tạo Token chỉ dựa vào tên người dùng .
