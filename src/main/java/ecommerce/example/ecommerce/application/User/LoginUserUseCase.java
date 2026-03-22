@@ -24,27 +24,19 @@ public class LoginUserUseCase {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+    // Trong file LoginUserUseCase.java
     public AuthResponse execute(LoginRequest request) {
-        Optional<User> userOpt = repository.findByUsername(request.getUsername());
-        if (userOpt.isEmpty()) {
-            throw new UseCaseException("Invalid username or password");
-        }
+        User user = repository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new UseCaseException("Invalid username or password"));
 
-        User user = userOpt.get();
-
-        // Verify password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new UseCaseException("Invalid username or password");
         }
 
-        // Generate JWT
-        String token = jwtTokenProvider.generateToken(user.getUsername());
+        // Truyền thêm ID vào đây
+        String token = jwtTokenProvider.generateToken(user.getUsername(), user.getId().toString());
 
-       return new AuthResponse(
-        user.getId().toString(), // Lấy ID từ DB trả về Postman
-        token, 
-        user.getUsername(), 
-        user.getRole().getName()
-    );
+        return new AuthResponse(user.getId().toString(), token, user.getUsername(), user.getRole().getName());
     }
 }
+

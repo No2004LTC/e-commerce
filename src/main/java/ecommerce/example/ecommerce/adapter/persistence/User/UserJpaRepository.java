@@ -8,19 +8,17 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/**
- * JPA Repository - Implements the domain UserRepository interface
- * This is the adapter that bridges between domain and persistence layer
- */
 @Repository
-public interface UserJpaRepository extends JpaRepository<User,UserId>, UserRepository {
+public interface UserJpaRepository extends JpaRepository<User, UserId>, UserRepository {
     @Override
     Optional<User> findByUsername(String username);
 
     @Override
     Optional<User> findByEmail(String email);
+
     @Override
     default User persist(User user) {
         return save(user);
     }
+    // findById đã có sẵn trong JpaRepository
 }
