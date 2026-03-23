@@ -1,5 +1,6 @@
 package ecommerce.example.ecommerce.infrastructure.security;
 
+import ecommerce.example.ecommerce.adapter.security.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,7 +14,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import ecommerce.example.ecommerce.adapter.security.JwtTokenProvider;
+
 import java.io.IOException;
 
 @Component
@@ -22,36 +23,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider tokenProvider;
     private final UserDetailsService userDetailsService;
 
+    // Sử dụng một constructor duy nhất để Spring Inject vào
     public JwtAuthenticationFilter(JwtTokenProvider tokenProvider, UserDetailsService userDetailsService) {
         this.tokenProvider = tokenProvider;
         this.userDetailsService = userDetailsService;
-        
     }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, 
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
             String jwt = getJwtFromRequest(request);
 
-            // Nếu có token hợp lệ, thiết lập thông tin người dùng vào SecurityContext
+            // Kiểm tra token có tồn tại và hợp lệ không
             if (StringUtils.hasText(jwt) && tokenProvider.isTokenValid(jwt)) {
                 String username = tokenProvider.extractUsername(jwt);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                
-                if (userDetails != null) {
-                    UsernamePasswordAuthenticationToken authentication = 
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                    if (userDetails != null) {
+                        /* LƯU Ý QUAN TRỌNG: 
+                           Ta nên để 'userDetails' làm Principal thay vì 'userId'.
+                           Điều này giúp Spring Security kiểm tra được Roles/Authorities của User.
+                           Nếu bạn để 'userId' (String) vào đây, các hàm check quyền @PreAuthorize sẽ bị lỗi 401/403.
+                        */
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        
+                        // Thiết lập thông tin xác thực vào Context
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }
                 }
             }
         } catch (Exception ex) {
+            // Ghi log để debug nếu quá trình xác thực bị lỗi
             logger.error("Could not set user authentication in security context", ex);
         }
 
-        // Luôn gọi filterChain để request tiếp tục đi tới Controller (kể cả khi không có token như Login/Register)
+        // Chuyển request đi tiếp đến Filter tiếp theo hoặc Controller
         filterChain.doFilter(request, response);
     }
 
@@ -62,5 +75,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
-    
 }

@@ -15,7 +15,7 @@ public class UserService {
     }
 
     public User register(User user) {
-        return repository.save(user); // Sửa từ persist thành save
+        return repository.persist(user); 
     }
     
     public Optional<User> findByUsername(String username) {
@@ -29,8 +29,9 @@ public class UserService {
     public Optional<User> findById(UserId id) {
         return repository.findById(id);
     }
-
     public User save(User user) {
-        return repository.save(user);
+        return repository.persist(user);
     }
+    public void deleteById(UserId id) 
+    { repository.deleteById(id); }
 }

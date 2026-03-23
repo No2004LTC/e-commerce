@@ -49,4 +49,8 @@ public final class UserId implements Serializable {
     public String toString() {
         return id != null ? id.toString() : null;
     }
+
+    public static UserId fromString(String id) {
+        return new UserId(UUID.fromString(id));
+    }
 }

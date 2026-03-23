@@ -16,7 +16,7 @@ import java.util.Map;
 @Component
 public class JwtTokenProvider {
 
-    // Key này sẽ được khởi tạo ngẫu nhiên trong bộ nhớ khi App chạy
+    // Key này sẽ được khởi tạo ngẫu nhiên trong bộ nhớ khi App chạy để đảm bảo an toàn tối đa
     private Key key;
 
     @Value("${jwt.expiration}")
@@ -24,62 +24,56 @@ public class JwtTokenProvider {
 
     /**
      * Khởi tạo Key ngẫu nhiên khi ứng dụng bắt đầu.
-     * Đảm bảo Key là duy nhất và cố định trong suốt vòng đời của Server.
+     * Đảm bảo Key là duy nhất và cố định trong suốt vòng đời của Server (Runtime).
      */
     @PostConstruct
     public void init() {
-        // Tạo key chuẩn 256-bit ngẫu nhiên cho thuật toán HS256
+        // Tạo key chuẩn 256-bit ngẫu nhiên phù hợp với thuật toán HS256
         this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     }
 
     /**
-     * Chuyển đổi chuỗi Secret Key từ dạng Base64
-     * (Trong trường hợp này, trả về Key ngẫu nhiên đã được tạo ở hàm init)
+     * Trả về chìa khóa ký đã được khởi tạo ngẫu nhiên.
      */
     private Key getSigningKey() {
         return this.key;
     }
 
     /**
-     * Hàm công khai để tạo Token chỉ dựa vào tên người dùng .
+     * Tạo mã thông báo JWT chứa cả Username và UserId.
+     * @param username Tên đăng nhập của người dùng.
+     * @param userId ID định danh của người dùng (dùng cho các UseCase như upload avatar).
      */
-    public String generateToken(String username) {
-        Map<String, Object> claims = new HashMap<>(); 
-        return createToken(claims, username, jwtExpiration);
-    }
-
-    /**
-     * Quy trình xây dựng mã thông báo JWT:
-     * - setClaims: Các thông tin mở rộng.
-     * - setSubject: Thông tin định danh chính (thường là username).
-     * - setIssuedAt: Thời điểm tạo token.
-     * - setExpiration: Thời điểm token hết hạn.
-     * - signWith: Ký xác nhận bằng thuật toán HS256 và chìa khóa bí mật.
-     */
-    private String createToken(Map<String, Object> claims, String subject, long expiration) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + expiration);
-
+    public String generateToken(String username, String userId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact(); 
+                .compact();
     }
 
     /**
-     * Trích xuất tên người dùng (username) từ trong chuỗi mã thông báo JWT.
+     * Trích xuất tên người dùng (username) từ mã thông báo.
      */
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
     }
 
     /**
-     * Kiểm tra tính hợp lệ của Token:
-     * - Nếu giải mã thành công bằng chìa khóa bí mật -> Token thật (true).
-     * - Nếu lỗi (hết hạn, sai chữ ký, format lỗi) -> Token giả hoặc hỏng (false).
+     * Trích xuất UserId từ mã thông báo.
+     */
+    public String extractUserId(String token) {
+        return extractAllClaims(token).get("userId", String.class);
+    }
+
+    /**
+     * Kiểm tra tính hợp lệ của mã thông báo.
+     * Trả về true nếu mã hợp lệ và chưa hết hạn.
      */
     public boolean isTokenValid(String token) {
         try {
@@ -89,13 +83,13 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (Exception e) {
-            // Log lỗi tại đây nếu cần (ví dụ: e.getMessage())
+            // Token không hợp lệ hoặc đã hết hạn
             return false;
         }
     }
 
     /**
-     * Đọc toàn bộ nội dung của mã thông báo.
+     * Giải mã và đọc toàn bộ thông tin (claims) trong mã thông báo.
      */
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
