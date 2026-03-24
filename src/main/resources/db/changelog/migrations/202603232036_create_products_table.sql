@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS products (
     product_code VARCHAR(100) NOT NULL UNIQUE, -- mã sản phẩm
     name VARCHAR(255) NOT NULL, -- tên sản phẩm
     description TEXT, -- mô tả
-
+    product_image_url VARCHAR(500),
     warehouse VARCHAR(255), -- kho chứa
     supplier VARCHAR(255), -- nhà cung cấp
 

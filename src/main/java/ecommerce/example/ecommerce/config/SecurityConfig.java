@@ -1,3 +1,8 @@
+/**
+ * The `SecurityConfig` class in this Java code configures security settings for an ecommerce
+ * application, including JWT authentication, password encoding with Argon2, and request authorization
+ * rules.
+ */
 package ecommerce.example.ecommerce.config;
 
 import ecommerce.example.ecommerce.infrastructure.security.JwtAuthenticationFilter;
@@ -42,6 +47,7 @@ public class SecurityConfig {
                         // Chỉ permitAll cho Login và Register
                         .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/products/**").authenticated()
                         // TẤT CẢ các request khác (bao gồm /api/auth/avatar) PHẢI có Token
                         .anyRequest().authenticated()
                 )
