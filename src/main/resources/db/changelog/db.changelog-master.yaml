@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/changelog/migrations/202603161714_create_role_table.sql
   - include:
       file: db/changelog/migrations/202603232036_create_products_table.sql
+  - include:
+      file: db/changelog/migrations/202603251805_create_suppliers_table.sql

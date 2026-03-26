@@ -4,6 +4,9 @@ import ecommerce.example.ecommerce.application.User.UpdateProfileUseCase;
 import ecommerce.example.ecommerce.application.User.UserService;
 import ecommerce.example.ecommerce.application.dto.Profile;
 import ecommerce.example.ecommerce.domain.user.UserId;
+import ecommerce.example.ecommerce.application.User.UploadAvatarUseCase;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.Authentication;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +23,7 @@ public class ProfileController {
 
     private final UpdateProfileUseCase updateProfileUseCase;
     private final UserService userService;
-
+    private final UploadAvatarUseCase uploadAvatarUseCase;
     @GetMapping("/{id}")
     public ResponseEntity<Profile> getProfile(@PathVariable String id) {
         return userService.findById(new UserId(UUID.fromString(id)))
@@ -48,5 +51,14 @@ public class ProfileController {
     public ResponseEntity<Void> deleteProfile(@PathVariable String id) {
         userService.deleteById(new UserId(UUID.fromString(id)));
         return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/avatar")
+    public ResponseEntity<String> uploadAvatar(
+            @RequestParam("file") MultipartFile file, 
+            Authentication authentication) {
+        String currentUserId = authentication.getName(); 
+        
+        String avatarUrl = uploadAvatarUseCase.execute(currentUserId, file);
+        return ResponseEntity.ok(avatarUrl);
     }
 }
