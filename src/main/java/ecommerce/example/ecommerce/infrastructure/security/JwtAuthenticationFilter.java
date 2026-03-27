@@ -23,7 +23,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider tokenProvider;
     private final UserDetailsService userDetailsService;
 
-    // Sử dụng một constructor duy nhất để Spring Inject vào
     public JwtAuthenticationFilter(JwtTokenProvider tokenProvider, UserDetailsService userDetailsService) {
         this.tokenProvider = tokenProvider;
         this.userDetailsService = userDetailsService;
@@ -36,7 +35,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
 
-            // Kiểm tra token có tồn tại và hợp lệ không
+            // LOG DEBUG: Kiểm tra xem Filter có nhận được Token từ Postman không
+            if (jwt != null) {
+                System.out.println("DEBUG: JWT Token found in request: " + jwt.substring(0, Math.min(jwt.length(), 10)) + "...");
+            }
+
             if (StringUtils.hasText(jwt) && tokenProvider.isTokenValid(jwt)) {
                 String username = tokenProvider.extractUsername(jwt);
 
@@ -44,27 +47,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                     if (userDetails != null) {
-                        /* LƯU Ý QUAN TRỌNG: 
-                           Ta nên để 'userDetails' làm Principal thay vì 'userId'.
-                           Điều này giúp Spring Security kiểm tra được Roles/Authorities của User.
-                           Nếu bạn để 'userId' (String) vào đây, các hàm check quyền @PreAuthorize sẽ bị lỗi 401/403.
-                        */
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         
-                        // Thiết lập thông tin xác thực vào Context
                         SecurityContextHolder.getContext().setAuthentication(authentication);
+                        System.out.println("DEBUG: Authentication set for user: " + username);
                     }
                 }
             }
         } catch (Exception ex) {
-            // Ghi log để debug nếu quá trình xác thực bị lỗi
+            System.err.println("DEBUG: Authentication Error: " + ex.getMessage());
             logger.error("Could not set user authentication in security context", ex);
         }
 
-        // Chuyển request đi tiếp đến Filter tiếp theo hoặc Controller
         filterChain.doFilter(request, response);
     }
 

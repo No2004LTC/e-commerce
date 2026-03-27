@@ -52,13 +52,16 @@ public class ProfileController {
         userService.deleteById(new UserId(UUID.fromString(id)));
         return ResponseEntity.noContent().build();
     }
-    @PostMapping("/avatar")
-    public ResponseEntity<String> uploadAvatar(
-            @RequestParam("file") MultipartFile file, 
-            Authentication authentication) {
-        String currentUserId = authentication.getName(); 
-        
-        String avatarUrl = uploadAvatarUseCase.execute(currentUserId, file);
-        return ResponseEntity.ok(avatarUrl);
-    }
+  @PostMapping(value = "/avatar", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+public ResponseEntity<String> uploadAvatar(
+        @RequestParam("file") MultipartFile file, 
+        Authentication authentication) {
+    
+    // Lấy name (thường là UUID string) từ Token
+    String currentUserId = authentication.getName(); 
+    
+    System.out.println("DEBUG: Current User ID from Token: " + currentUserId);
+    String avatarUrl = uploadAvatarUseCase.execute(currentUserId, file);
+    return ResponseEntity.ok(avatarUrl);
+}
 }
