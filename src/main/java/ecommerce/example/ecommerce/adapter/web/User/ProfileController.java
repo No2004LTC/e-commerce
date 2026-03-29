@@ -41,8 +41,9 @@ public class ProfileController {
                 new UserId(UUID.fromString(id)), 
                 request.username(),
                 request.email(), 
-                request.avatarUrl(),
-                request.password() // Truyền password vào đây
+                
+                request.password(), // Truyền password vào đây
+                 request.avatarUrl()
         );
         return ResponseEntity.ok(updated);
     }
