@@ -42,6 +42,7 @@ public class SecurityConfig {
                         // Các endpoint yêu cầu login
                         .requestMatchers("/api/profile/**").authenticated()
                         .requestMatchers("/api/products/**").authenticated()
+                        .requestMatchers("/api/cart/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 // Đưa Filter JWT lên trước Filter xác thực mặc định
