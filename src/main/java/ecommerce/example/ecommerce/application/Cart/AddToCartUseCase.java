@@ -13,26 +13,32 @@ import java.util.ArrayList;
 @RequiredArgsConstructor
 public class AddToCartUseCase {
     private final CartGateway cartGateway;
-    private final ProductService productService; // Dùng Service có sẵn của bạn
+    private final ProductService productService;
 
     public Cart execute(String userId, String productIdStr, int quantity) {
-        // 1. Chuyển String sang ProductId domain object
         ProductId productId = ProductId.fromString(productIdStr);
 
-        // 2. Tìm product qua ProductService
         Product product = productService.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
 
-        // 3. Tạo CartItem lấy thông tin chuẩn từ Entity Product
-      CartItem newItem = new CartItem(
+        // 1. Logic C2C: Không được tự mua hàng của chính mình
+        if (product.getOwnerId().equals(userId)) {
+            throw new RuntimeException("Bạn không thể thêm sản phẩm của chính mình vào giỏ hàng!");
+        }
+
+        // 2. Kiểm tra kho hàng trước khi thêm vào giỏ
+        if (product.getStockQuantity() < quantity) {
+            throw new RuntimeException("Kho hàng chỉ còn " + product.getStockQuantity() + " sản phẩm.");
+        }
+
+        CartItem newItem = new CartItem(
                 product.getId().getValue(), 
                 product.getName(),
-                product.getPrice(), // Truyền BigDecimal trực tiếp ở đây
+                product.getPrice(), 
                 quantity,
                 product.getProductImageUrl()
         );
 
-        // 4. Lưu vào Redis qua CartGateway
         Cart cart = cartGateway.findByUserId(userId)
                 .orElse(new Cart(userId, new ArrayList<>()));
         

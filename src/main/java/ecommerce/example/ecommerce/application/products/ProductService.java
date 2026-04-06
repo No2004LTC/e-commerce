@@ -30,4 +30,17 @@ public class ProductService {
     public void deleteById(ProductId id) {
         repository.deleteById(id);
     }
+    public void decreaseStock(ProductId id, int amount) {
+    Product product = repository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+    if (product.getStockQuantity() < amount) {
+        throw new RuntimeException("Sản phẩm " + product.getName() + " đã hết hàng!");
+    }
+
+    product.setStockQuantity(product.getStockQuantity() - amount);
+    product.setSoldQuantity(product.getSoldQuantity() + amount); // Tăng số lượng đã bán lên
+    
+    repository.persist(product);
+}
 }

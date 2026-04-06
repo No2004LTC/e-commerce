@@ -9,8 +9,11 @@ import java.math.BigDecimal;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Product {
     @EmbeddedId
-@AttributeOverride(name = "value", column = @Column(name = "id")) // Đè tên 'value' thành 'id' trong DB
-private ProductId id;
+    @AttributeOverride(name = "value", column = @Column(name = "id"))
+    private ProductId id;
+
+    @Column(name = "owner_id", nullable = false)
+    private String ownerId; // UUID của người đăng bán
 
     @Column(name = "product_code", unique = true, nullable = false)
     private String productCode;
@@ -30,4 +33,19 @@ private ProductId id;
 
     @Column(name = "sold_quantity")
     private Integer soldQuantity;
+
+    private String status; // AVAILABLE, OUT_OF_STOCK, HIDDEN
+
+    // Logic nghiệp vụ: Kiểm tra và trừ kho
+    public void validateAndDecreaseStock(int amount) {
+        if (this.stockQuantity < amount) {
+            throw new RuntimeException("Sản phẩm '" + this.name + "' không đủ hàng trong kho!");
+        }
+        this.stockQuantity -= amount;
+        this.soldQuantity = (this.soldQuantity == null ? 0 : this.soldQuantity) + amount;
+        
+        if (this.stockQuantity == 0) {
+            this.status = "OUT_OF_STOCK";
+        }
+    }
 }

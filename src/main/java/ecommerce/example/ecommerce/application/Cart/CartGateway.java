@@ -6,4 +6,5 @@ import java.util.Optional;
 public interface CartGateway {
     void save(Cart cart);
     Optional<Cart> findByUserId(String userId);
+    void deleteByUserId(String userId);
 }

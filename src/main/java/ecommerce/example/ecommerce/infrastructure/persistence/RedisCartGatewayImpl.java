@@ -11,11 +11,13 @@ import java.util.concurrent.TimeUnit;
 @Component
 @RequiredArgsConstructor
 public class RedisCartGatewayImpl implements CartGateway {
+    
     private final RedisTemplate<String, Object> redisTemplate;
     private static final String KEY_PREFIX = "cart:";
 
     @Override
     public void save(Cart cart) {
+        // Lưu giỏ hàng vào Redis với thời gian hết hạn là 7 ngày
         redisTemplate.opsForValue().set(KEY_PREFIX + cart.getUserId(), cart, 7, TimeUnit.DAYS);
     }
 
@@ -23,5 +25,11 @@ public class RedisCartGatewayImpl implements CartGateway {
     public Optional<Cart> findByUserId(String userId) {
         Object data = redisTemplate.opsForValue().get(KEY_PREFIX + userId);
         return Optional.ofNullable((Cart) data);
+    }
+
+   
+    @Override
+    public void deleteByUserId(String userId) {
+        redisTemplate.delete(KEY_PREFIX + userId);
     }
 }
