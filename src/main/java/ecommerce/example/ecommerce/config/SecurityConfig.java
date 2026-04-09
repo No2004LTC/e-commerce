@@ -35,6 +35,7 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable) // Tắt CSRF để cho phép POST/PUT
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/payment/momo/callback"))    
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép các endpoint public
@@ -43,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/profile/**").authenticated()
                         .requestMatchers("/api/products/**").authenticated()
                         .requestMatchers("/api/cart/**").authenticated()
+                        .requestMatchers("/api/payment/momo/callback/").permitAll()
                         .anyRequest().authenticated()
                 )
                 // Đưa Filter JWT lên trước Filter xác thực mặc định

@@ -77,7 +77,14 @@ public class CreateOrderUseCase {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
     
-    private List<OrderItem> mapToOrderItems(List<CartItem> items) {
-        return items.stream().map(i -> new OrderItem(i.getProductId(), i.getName(), i.getPrice(), i.getQuantity())).toList();
-    }
+   private List<OrderItem> mapToOrderItems(List<CartItem> items) {
+    return items.stream()
+            .map(i -> OrderItem.builder()
+                    .productId(i.getProductId())
+                    .productName(i.getName())
+                    .priceAtPurchase(i.getPrice())
+                    .quantity(i.getQuantity())
+                    .build())
+            .toList();
+}
 }
