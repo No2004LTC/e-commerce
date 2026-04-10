@@ -1,8 +1,13 @@
 package ecommerce.example.ecommerce.config;
 
+import org.springframework.context.annotation.Bean; 
 import org.springframework.context.annotation.Configuration;
-
+import org.springframework.web.client.RestTemplate; 
 @Configuration
 public class AppConfig {
-    // Application configuration beans can be added here as needed
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 }

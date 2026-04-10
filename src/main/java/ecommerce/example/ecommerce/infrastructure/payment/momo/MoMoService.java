@@ -2,10 +2,10 @@ package ecommerce.example.ecommerce.infrastructure.payment.momo;
 
 import ecommerce.example.ecommerce.domain.order.Order;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,31 +15,43 @@ import java.util.Map;
 public class MoMoService {
     private final RestTemplate restTemplate;
 
-    // Thông số Sandbox MoMo
     @Value("${momo.partner-code}")
-    private final String partnerCode = "MOMOBKUN20220314";
+    private String partnerCode;
+
     @Value("${momo.access-key}")
-    private final String accessKey = "klm05ndA8h948C8f";
+    private String accessKey;
+
     @Value("${momo.secret-key}")
-    private final String secretKey = "at67qH6mk8w5Y1n71y_your_secret"; // Thay bằng secret của bạn
+    private String secretKey;
+
     @Value("${momo.endpoint}")
-    private final String endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
+    private String endpoint;
+
+    @Value("${momo.redirect-url}")
+    private String redirectUrl;
+
+    @Value("${momo.ipn-url}")
+    private String ipnUrl;
 
     public String createPaymentUrl(Order order) throws Exception {
         String requestId = String.valueOf(System.currentTimeMillis());
         String orderId = order.getId();
         String amount = order.getTotalAmount().toPlainString();
         String orderInfo = "Thanh toán đơn hàng: " + orderId;
-        String redirectUrl = "http://localhost:3000/thanks"; // Trang web của bạn
-        String ipnUrl = "https://your-ngrok-link.app/api/payment/momo/callback"; // LINK NGROK CỦA BẠN
         String requestType = "captureWallet";
         String extraData = "";
 
-        // Tạo chữ ký theo thứ tự Alphabet của Key
-        String rawHash = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData +
-                "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo +
-                "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl +
-                "&requestId=" + requestId + "&requestType=" + requestType;
+        // Tạo chuỗi raw hash theo đúng thứ tự Alphabet của Key để làm chữ ký
+        String rawHash = "accessKey=" + accessKey + 
+                "&amount=" + amount + 
+                "&extraData=" + extraData +
+                "&ipnUrl=" + ipnUrl + 
+                "&orderId=" + orderId + 
+                "&orderInfo=" + orderInfo +
+                "&partnerCode=" + partnerCode + 
+                "&redirectUrl=" + redirectUrl +
+                "&requestId=" + requestId + 
+                "&requestType=" + requestType;
 
         String signature = MoMoSignature.generateSignature(secretKey, rawHash);
 
@@ -58,6 +70,11 @@ public class MoMoService {
         body.put("lang", "vi");
 
         ResponseEntity<Map> response = restTemplate.postForEntity(endpoint, body, Map.class);
-        return (String) response.getBody().get("payUrl");
+        
+        if (response.getBody() != null && response.getBody().containsKey("payUrl")) {
+            return (String) response.getBody().get("payUrl");
+        }
+        
+        throw new RuntimeException("Không thể lấy payUrl từ MoMo: " + response.getBody());
     }
 }
