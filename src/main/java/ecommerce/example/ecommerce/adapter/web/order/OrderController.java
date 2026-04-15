@@ -1,6 +1,7 @@
 package ecommerce.example.ecommerce.adapter.web.order;
 
 import ecommerce.example.ecommerce.application.order.CreateOrderUseCase;
+import ecommerce.example.ecommerce.application.order.PlaceOrderUseCase;
 import ecommerce.example.ecommerce.domain.order.Order;
 import ecommerce.example.ecommerce.domain.order.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,18 +16,22 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderController {
 
-    private final CreateOrderUseCase createOrderUseCase;
+    private final PlaceOrderUseCase placeOrderUseCase;
     private final OrderRepository orderRepository;
 
     /**
      * 1. Đặt hàng (Từ giỏ hàng Redis chuyển thành Order MySQL)
      */
-    @PostMapping
-    public ResponseEntity<List<Order>> placeOrder(Authentication auth) {
-        // auth.getName() trả về userId (UUID) từ JWT
+   @PostMapping
+    public ResponseEntity<String> placeOrder(Authentication auth) throws Exception {
+        // auth.getName() trả về userId từ JWT
         String buyerId = auth.getName(); 
-        List<Order> orders = createOrderUseCase.execute(buyerId);
-        return ResponseEntity.ok(orders);
+        
+        // UseCase này bây giờ trả về String (payUrl)
+        String payUrl = placeOrderUseCase.execute(buyerId); 
+        
+        // Trả về String cho Postman
+        return ResponseEntity.ok(payUrl);
     }
 
     /**
