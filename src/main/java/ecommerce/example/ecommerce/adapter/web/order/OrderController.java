@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.Map; 
 import java.util.List;
 
 @RestController
@@ -23,16 +23,28 @@ public class OrderController {
      * 1. Đặt hàng (Từ giỏ hàng Redis chuyển thành Order MySQL)
      */
    @PostMapping
-    public ResponseEntity<String> placeOrder(Authentication auth) throws Exception {
-        // auth.getName() trả về userId từ JWT
-        String buyerId = auth.getName(); 
-        
-        // UseCase này bây giờ trả về String (payUrl)
-        String payUrl = placeOrderUseCase.execute(buyerId); 
-        
-        // Trả về String cho Postman
-        return ResponseEntity.ok(payUrl);
-    }
+  
+public ResponseEntity<?> placeOrder(Authentication auth) throws Exception {
+    String buyerId = auth.getName(); 
+    
+    // 1. Thực hiện đặt hàng và lấy link thanh toán
+    String payUrl = placeOrderUseCase.execute(buyerId); 
+    
+    // 2. Vì PlaceOrderUseCase vừa mới save Order vào DB, 
+    // bạn có thể lấy đơn hàng mới nhất của Buyer này ra để lấy ID
+    Order latestOrder = orderRepository.findByBuyerId(buyerId)
+            .stream()
+            .sorted((o1, o2) -> o2.getId().compareTo(o1.getId())) // Sắp xếp lấy cái mới nhất (tạm thời)
+            .findFirst()
+            .orElseThrow();
+
+    // 3. Trả về JSON cho Postman dễ nhìn
+    return ResponseEntity.ok(Map.of(
+        "orderId", latestOrder.getId(),  // Trả về cái ID dài bf44f1db...
+        "payUrl", payUrl,                // Trả về link QR
+        "message", "Đặt hàng thành công! Hãy quét mã QR để thanh toán."
+    ));
+}
 
     /**
      * 2. Xem lịch sử mua hàng (Cho người mua)

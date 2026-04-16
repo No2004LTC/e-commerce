@@ -30,39 +30,39 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-   @Bean
+    @Bean
 public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .csrf(AbstractHttpConfigurer::disable) 
+        .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth
+            // 1. ENDPOINT CÔNG KHAI
+            .requestMatchers("/api/auth/**", "/error", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+            .requestMatchers("/api/payment/**").permitAll() 
             
-            // 1. Tắt hoàn toàn CSRF (Chỉ cần 1 dòng này là đủ cho cả ứng dụng và MoMo)
-            .csrf(AbstractHttpConfigurer::disable) 
+            // 2. ENDPOINT CHAT & WEBSOCKET (Yêu cầu đăng nhập)
+            // Mở khóa cho API lấy lịch sử chat
+            .requestMatchers("/api/chat/**").authenticated() 
+            // WebSocket endpoint
+            .requestMatchers("/ws/**", "/ws-raw/**").authenticated()
+
+            // 3. CÁC API NGHIỆP VỤ KHÁC
+            .requestMatchers("/api/profile/**").authenticated()
+            .requestMatchers("/api/products/**").authenticated()
+            .requestMatchers("/api/cart/**").authenticated()
+            .requestMatchers("/api/orders", "/api/orders/**").authenticated() 
             
-            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                    // Cho phép các endpoint public
-                    .requestMatchers("/api/auth/**", "/error", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                    
-                    // Xóa dấu "/" ở cuối callback đi để Spring Boot 3 nhận diện chuẩn xác nhất
-                    .requestMatchers("/api/payment/momo/**").permitAll()
-                    
-                    // Các endpoint yêu cầu login
-                    .requestMatchers("/api/profile/**").authenticated()
-                    .requestMatchers("/api/products/**").authenticated()
-                    .requestMatchers("/api/cart/**").authenticated()
-                    .requestMatchers("/api/orders", "/api/orders/**").authenticated() // Đừng quên thêm dòng này cho OrderController nhé
-                    
-                    .anyRequest().authenticated()
-            )
-            // Đưa Filter JWT lên trước Filter xác thực mặc định
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .anyRequest().authenticated()
+        )
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
 }
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("*")); // Cho phép tất cả các nguồn (để test Postman)
+        configuration.setAllowedOrigins(Collections.singletonList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

@@ -33,7 +33,7 @@ public class VnPayService {
         vnp_Params.put("vnp_Amount", String.valueOf(order.getTotalAmount().longValue() * 100));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
-        vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang " + vnp_TxnRef);
+        vnp_Params.put("vnp_OrderInfo", "ThanhToanDonHang" + vnp_TxnRef); // Bỏ dấu cách cho an toàn tuyệt đối
         vnp_Params.put("vnp_OrderType", "other");
         vnp_Params.put("vnp_Locale", "vn");
         vnp_Params.put("vnp_ReturnUrl", vnp_ReturnUrl);
@@ -43,7 +43,6 @@ public class VnPayService {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         vnp_Params.put("vnp_CreateDate", formatter.format(cld.getTime()));
 
-        // NỐI CHUỖI DỮ LIỆU
         StringBuilder query = new StringBuilder();
         Iterator<Map.Entry<String, String>> itr = vnp_Params.entrySet().iterator();
         while (itr.hasNext()) {
@@ -51,7 +50,7 @@ public class VnPayService {
             String fieldName = entry.getKey();
             String fieldValue = entry.getValue();
             if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                // Build Query (Quan trọng: Dùng UTF_8 và thay + bằng %20)
+                // Build Query: Quan trọng là URLEncode xong phải in hoa các ký tự %xx
                 query.append(URLEncoder.encode(fieldName, StandardCharsets.UTF_8.toString()));
                 query.append('=');
                 query.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString())
@@ -64,11 +63,11 @@ public class VnPayService {
         }
 
         String queryUrl = query.toString();
-        // TÍNH CHỮ KÝ TRÊN CHUỖI ĐÃ ĐƯỢC ENCODE (Theo chuẩn VNPAY 2.1.0)
+        // TÍNH CHỮ KÝ TRÊN CHUỖI ĐÃ BUILD
         String vnp_SecureHash = hmacSHA512(vnp_HashSecret, queryUrl);
         String paymentUrl = vnp_Url + "?" + queryUrl + "&vnp_SecureHash=" + vnp_SecureHash;
 
-        log.info("[VNPAY] URL CUỐI CÙNG: {}", paymentUrl);
+        log.info("[VNPAY] URL: {}", paymentUrl);
         return paymentUrl;
     }
 
@@ -84,7 +83,7 @@ public class VnPayService {
             for (byte b : result) {
                 sb.append(String.format("%02x", b & 0xff));
             }
-            return sb.toString().toUpperCase(); // BẮT BUỘC VIẾT HOA
+            return sb.toString().toUpperCase(); // VIẾT HOA HASH
         } catch (Exception ex) {
             return "";
         }

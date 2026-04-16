@@ -11,3 +11,5 @@ databaseChangeLog:
       file: db/changelog/migrations/202604061639_create_orders_table.sql
   - include:
       file: db/changelog/migrations/202604061639_create_order_items_table.sql
+  - include:
+        file: db/changelog/migrations/202604161627_create_chat_message_table.sql

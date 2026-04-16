@@ -10,23 +10,28 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class VietQRService {
 
-    // THÔNG TIN TÀI KHOẢN CỦA BẠN
-    private final String BANK_ID = "vcb"; // Ngân hàng Vietcombank
-    private final String ACCOUNT_NO = "1234567890"; // Thay bằng số TK VCB của bạn
-    private final String ACCOUNT_NAME = "NGUYEN VAN A"; // Thay bằng tên chủ TK (không dấu)
-    private final String TEMPLATE = "qr_only"; // Loại template (qr_only, compact, v.v.)
+    // THÔNG TIN TÀI KHOẢN (Bạn thay bằng STK thật của mình để demo quét cho xịn)
+    private final String BANK_ID = "vcb"; 
+    private final String ACCOUNT_NO = "1234567890"; // Thay số TK thật của bạn
+    private final String ACCOUNT_NAME = "NGUYEN VAN A"; // Tên không dấu
+    private final String TEMPLATE = "qr_only"; 
 
     public String createPaymentUrl(Order order) {
-        String amount = String.valueOf(order.getTotalAmount().longValue());
-        String description = URLEncoder.encode("Thanh toan don hang " + order.getId().substring(0, 8), StandardCharsets.UTF_8);
-        String accountNameEncoded = URLEncoder.encode(ACCOUNT_NAME, StandardCharsets.UTF_8);
+        try {
+            String amount = String.valueOf(order.getTotalAmount().longValue());
+            // Nội dung chuyển khoản: Thanh toan DH [ID đơn hàng]
+            String description = URLEncoder.encode("Thanh toan DH " + order.getId().substring(0, 8), StandardCharsets.UTF_8);
+            String accountNameEncoded = URLEncoder.encode(ACCOUNT_NAME, StandardCharsets.UTF_8);
 
-        // Link tạo ảnh QR chuẩn Napas (VietQR)
-        // Cấu trúc: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.png?amount=<AMOUNT>&addInfo=<DESCRIPTION>&accountName=<NAME>
-        String qrUrl = String.format("https://img.vietqr.io/image/%s-%s-%s.png?amount=%s&addInfo=%s&accountName=%s",
-                BANK_ID, ACCOUNT_NO, TEMPLATE, amount, description, accountNameEncoded);
+            // Link tạo ảnh QR chuẩn Napas
+            String qrUrl = String.format("https://img.vietqr.io/image/%s-%s-%s.png?amount=%s&addInfo=%s&accountName=%s",
+                    BANK_ID, ACCOUNT_NO, TEMPLATE, amount, description, accountNameEncoded);
 
-        log.info("[VIETQR] QR Code URL: {}", qrUrl);
-        return qrUrl;
+            log.info("[VIETQR] Tạo thành công QR Code cho đơn hàng: {}", order.getId());
+            return qrUrl;
+        } catch (Exception e) {
+            log.error("[VIETQR] Lỗi tạo QR: {}", e.getMessage());
+            return null;
+        }
     }
 }

@@ -23,7 +23,9 @@ public final class UserId implements Serializable {
     public UserId(UUID id) {
         this.id = Objects.requireNonNull(id, "ID cannot be null");
     }
-
+        public UserId(String id) {
+            this.id = id != null ? UUID.fromString(id) : null;
+        }
     public static UserId random() {
         return new UserId(UUID.randomUUID());
     }
