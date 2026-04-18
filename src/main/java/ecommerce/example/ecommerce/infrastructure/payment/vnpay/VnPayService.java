@@ -20,7 +20,7 @@ public class VnPayService {
     private final String vnp_HashSecret = "266B4NOHUADEDN7HOKTOSC1J90N3WJED";
     private final String vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 
-    @Value("${vnp.return-url:http://localhost:3000/thanks}")
+    @Value("${vnp.return-url:https://eery-nonmutinously-gertrude.ngrok-free.dev/api/payment/vnpay/return}")
     private String vnp_ReturnUrl;
 
     public String createPaymentUrl(Order order) throws Exception {
