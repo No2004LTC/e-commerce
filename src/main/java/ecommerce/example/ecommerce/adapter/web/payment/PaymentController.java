@@ -1,6 +1,6 @@
 package ecommerce.example.ecommerce.adapter.web.payment;
 
-import ecommerce.example.ecommerce.application.mail.EmailService;
+import ecommerce.example.ecommerce.infrastructure.email.EmailService;
 import ecommerce.example.ecommerce.application.products.ProductService;
 import ecommerce.example.ecommerce.domain.order.Order;
 import ecommerce.example.ecommerce.domain.order.OrderRepository;

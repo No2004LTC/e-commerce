@@ -3,8 +3,11 @@ package ecommerce.example.ecommerce.adapter.web.Auth;
 import ecommerce.example.ecommerce.application.User.RegisterUserUseCase;
 import ecommerce.example.ecommerce.application.User.LoginUserUseCase;
 import ecommerce.example.ecommerce.application.User.UploadAvatarUseCase;
+import ecommerce.example.ecommerce.application.mail.OtpService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,5 +42,22 @@ public class AuthController {
 
         String url = uploadAvatarUseCase.execute(userId, file);
         return ResponseEntity.ok(Map.of("avatarUrl", url));
+    }
+    private final OtpService otpService;
+
+    
+    @PostMapping("/send-otp")
+    public ResponseEntity<String> sendOtp(@RequestParam String email) {
+        otpService.generateAndSendOtp(email);
+        return ResponseEntity.ok("Mã OTP đã được gửi đến " + email);
+    }
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestParam String email, @RequestParam String otp) {
+        boolean isValid = otpService.verifyOtp(email, otp);
+        if (isValid) {
+            return ResponseEntity.ok("Xác thực OTP thành công!");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Mã OTP không đúng hoặc đã hết hạn.");
+        }
     }
 }
