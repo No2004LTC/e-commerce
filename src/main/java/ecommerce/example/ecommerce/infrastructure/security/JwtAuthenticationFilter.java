@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
 
-            // LOG DEBUG: Kiểm tra xem Filter có nhận được Token từ Postman không
+            
             if (jwt != null) {
                 System.out.println("DEBUG: JWT Token found in request: " + jwt.substring(0, Math.min(jwt.length(), 10)) + "...");
             }

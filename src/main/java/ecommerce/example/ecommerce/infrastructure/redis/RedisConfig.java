@@ -16,7 +16,7 @@ public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connec
     RedisTemplate<String, Object> template = new RedisTemplate<>();
     template.setConnectionFactory(connectionFactory);
 
- // 1. Giữ nguyên phần cấu hình ObjectMapper
+ 
         ObjectMapper mapper = new ObjectMapper();
         mapper.findAndRegisterModules();
         mapper.activateDefaultTyping(
@@ -26,15 +26,14 @@ public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connec
                 ObjectMapper.DefaultTyping.NON_FINAL
         );
 
-        // 2. SỬA TẠI ĐÂY: Dùng Constructor trực tiếp truyền (mapper, class)
-        // Cách này cực kỳ bền vững, không lo builder() bị undefined
+        
         Jackson2JsonRedisSerializer<Object> jsonSerializer = new Jackson2JsonRedisSerializer<>(mapper, Object.class);
 
-        // 3. Các phần setKeySerializer... bên dưới giữ nguyên
+        
         template.setKeySerializer(RedisSerializer.string());
         template.setValueSerializer(jsonSerializer);
 
-    // 3. Set serializers
+    
     template.setKeySerializer(RedisSerializer.string());
     template.setHashKeySerializer(RedisSerializer.string());
 

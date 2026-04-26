@@ -3,7 +3,7 @@ package ecommerce.example.ecommerce.infrastructure.payment.momo;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.util.HexFormat; // Có từ Java 17
+import java.util.HexFormat; 
 
 public class MoMoSignature {
     public static String generateSignature(String secretKey, String data) throws Exception {
@@ -16,7 +16,7 @@ public class MoMoSignature {
 
         byte[] rawHmac = mac.doFinal(dataBytes);
         
-        // Java 17 cách dùng chuẩn nhất để tránh lỗi ffffff
+        
         return HexFormat.of().formatHex(rawHmac);
     }
 }

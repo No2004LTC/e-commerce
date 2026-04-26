@@ -15,7 +15,7 @@ public final class UserId implements Serializable {
     @JdbcTypeCode(SqlTypes.VARCHAR)
     private final UUID id;
 
-    // Constructor mặc định cho JPA
+   
     protected UserId() {
         this.id = null;
     }

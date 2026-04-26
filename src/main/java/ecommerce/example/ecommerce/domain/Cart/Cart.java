@@ -31,7 +31,7 @@ public class Cart implements Serializable {
         this.items.removeIf(item -> item.getProductId().equals(productId));
     }
 
-    // Cập nhật số lượng (ví dụ khách chọn lại số lượng trên UI)
+    
     public void updateQuantity(String productId, int quantity) {
         for (CartItem item : items) {
             if (item.getProductId().equals(productId)) {

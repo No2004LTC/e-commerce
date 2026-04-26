@@ -10,8 +10,7 @@ import java.util.List;
 @Repository
 public interface OrderJpaRepository extends JpaRepository<Order, String>, OrderRepository {
 
-    // Spring Data JPA sẽ tự động cung cấp triển khai cho các phương thức này 
-    // dựa trên quy tắc đặt tên (Query Methods).
+    
 
     @Override
     List<Order> findByBuyerId(String buyerId);

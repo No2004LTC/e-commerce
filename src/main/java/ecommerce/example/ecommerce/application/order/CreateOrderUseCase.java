@@ -24,7 +24,7 @@ public class CreateOrderUseCase {
 
     @Transactional
     public List<Order> execute(String buyerId) {
-        // 1. Lấy giỏ hàng từ Redis
+       
         Cart cart = cartGateway.findByUserId(buyerId)
                 .orElseThrow(() -> new RuntimeException("Giỏ hàng trống!"));
 
@@ -32,8 +32,7 @@ public class CreateOrderUseCase {
             throw new RuntimeException("Giỏ hàng không có sản phẩm nào.");
         }
 
-        // 2. Gom nhóm sản phẩm theo Seller (Vì 1 giỏ hàng có thể mua của nhiều Shop)
-        // Đây là kỹ thuật quan trọng trong C2C
+       
         Map<String, List<CartItem>> itemsBySeller = groupItemsBySeller(cart.getItems());
 
         List<Order> createdOrders = new ArrayList<>();
@@ -42,7 +41,7 @@ public class CreateOrderUseCase {
             String sellerId = entry.getKey();
             List<CartItem> sellerItems = entry.getValue();
 
-            // 3. Tạo Entity Order
+            
             Order order = Order.builder()
                     .id(UUID.randomUUID().toString())
                     .buyerId(buyerId)
@@ -52,12 +51,12 @@ public class CreateOrderUseCase {
                     .totalAmount(calculateTotal(sellerItems))
                     .build();
 
-            // 4. Lưu vào Database
+         
             orderRepository.save(order);
             createdOrders.add(order);
         }
 
-        // 5. Xóa giỏ hàng Redis sau khi đã tạo Order thành công
+       
         cartGateway.deleteByUserId(buyerId);
 
         return createdOrders;
@@ -65,7 +64,7 @@ public class CreateOrderUseCase {
 
     private Map<String, List<CartItem>> groupItemsBySeller(List<CartItem> items) {
         return items.stream().collect(Collectors.groupingBy(item -> {
-            // Lấy ownerId từ Database cho mỗi sản phẩm trong giỏ
+            
             return productService.findById(ProductId.fromString(item.getProductId()))
                     .get().getOwnerId();
         }));

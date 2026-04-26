@@ -13,7 +13,7 @@ public class AuthResponse {
         this.role = role;
     }
 
-    // Getters
+   
     public String getId() { return id; }
     public String getToken() { return token; }
     public String getUsername() { return username; }

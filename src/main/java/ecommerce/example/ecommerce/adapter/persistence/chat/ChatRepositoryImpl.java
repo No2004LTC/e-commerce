@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class ChatRepositoryImpl implements ChatRepository {
 
     private final ChatJpaRepository jpaRepository;
-    // Định dạng thời gian để chuyển từ String sang LocalDateTime và ngược lại
+    
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     @Override
@@ -24,13 +24,13 @@ public class ChatRepositoryImpl implements ChatRepository {
                 .senderId(message.getSenderId())
                 .recipientId(message.getRecipientId())
                 .content(message.getContent())
-                // Chuyển String từ Domain sang LocalDateTime để lưu DB
+               
                 .timestamp(message.getTimestamp() != null ? LocalDateTime.parse(message.getTimestamp(), formatter) : LocalDateTime.now())
                 .build();
         jpaRepository.save(entity);
     }
 
-    @Override // Phải là getHistory để khớp với Interface
+    @Override 
     public List<ChatMessage> getHistory(String user1, String user2) {
         return jpaRepository.findBySenderIdAndRecipientIdOrSenderIdAndRecipientIdOrderByTimestampAsc(user1, user2, user2, user1)
                 .stream()
@@ -38,7 +38,7 @@ public class ChatRepositoryImpl implements ChatRepository {
                         .senderId(entity.getSenderId())
                         .recipientId(entity.getRecipientId())
                         .content(entity.getContent())
-                        // Chuyển LocalDateTime từ DB sang String để trả về Domain
+                        
                         .timestamp(entity.getTimestamp() != null ? entity.getTimestamp().format(formatter) : null)
                         .build())
                 .collect(Collectors.toList());

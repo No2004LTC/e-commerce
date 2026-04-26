@@ -14,12 +14,10 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     
-    // Email đại diện của hệ thống - Lấy đúng mail của Long
+    
     private final String FROM_EMAIL = "nguyenxuanlong10a1@gmail.com";
 
-    /**
-     * Gửi Email xác nhận thanh toán thành công (Xử lý bất đồng bộ)
-     */
+    
     @Async
     public void sendPaymentSuccessEmail(String toEmail, String orderId, long amount) {
         if (!isValidEmail(toEmail)) return;
@@ -43,9 +41,7 @@ public class EmailService {
         }
     }
 
-    /**
-     * Gửi Email chứa mã OTP để xác thực tài khoản (Xử lý bất đồng bộ)
-     */
+   
     @Async
     public void sendOtpEmail(String toEmail, String otpCode) {
         if (!isValidEmail(toEmail)) return;
@@ -68,7 +64,7 @@ public class EmailService {
         }
     }
 
-    // Hàm kiểm tra email hợp lệ cơ bản
+    
     private boolean isValidEmail(String email) {
         if (email == null || !email.contains("@")) {
             log.error("[MAIL ERROR] Email không hợp lệ: {}", email);

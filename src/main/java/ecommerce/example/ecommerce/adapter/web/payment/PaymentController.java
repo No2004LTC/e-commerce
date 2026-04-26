@@ -21,30 +21,24 @@ public class PaymentController {
     private final OrderRepository orderRepository;
     private final ProductService productService;
     private final EmailService emailService;
-    private final VietQRService vietQRService; // <--- CẦN INJECT THẰNG NÀY VÀO
+    private final VietQRService vietQRService; 
 
-    /**
-     * 1. API TẠO MÃ QR (Đây là chỗ bạn cần gọi để lấy mã QR)
-     * Bạn gọi: GET http://localhost:8080/api/payment/create-qr/362085077d233
-     */
+    
     @GetMapping("/create-qr/{orderId}")
     public ResponseEntity<?> createVietQR(@PathVariable String orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại: " + orderId));
 
-        // Gọi service để lấy link ảnh .png
+        
         String qrUrl = vietQRService.createPaymentUrl(order);
 
         log.info("[VIETQR] Đã tạo link ảnh QR thành công cho đơn hàng: {}", orderId);
         
-        // Trả về link ảnh cho Frontend
+        
         return ResponseEntity.ok(Map.of("qrUrl", qrUrl));
     }
 
-    /**
-     * 2. API XÁC NHẬN THANH TOÁN (Dành cho Admin hoặc Demo)
-     * Vì VietQR không tự gọi callback, sau khi quét xong bạn gọi API này để hệ thống nổ Email
-     */
+    
     @PostMapping("/confirm-payment/{orderId}")
     public ResponseEntity<?> manualConfirm(@PathVariable String orderId) {
         log.info("[MANUAL CONFIRM] Xác nhận thanh toán tay cho đơn hàng: {}", orderId);
@@ -52,7 +46,7 @@ public class PaymentController {
         return ResponseEntity.ok(Map.of("message", "Đã xác nhận thanh toán và gửi Email thành công!"));
     }
 
-    // --- HÀM CẬP NHẬT DB VÀ GỬI EMAIL (GIỮ NGUYÊN) ---
+    
     private void updateOrderToPaid(String orderId) {
         var order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + orderId));
@@ -61,7 +55,7 @@ public class PaymentController {
             order.setStatus("PAID");
             orderRepository.save(order);
             
-            // Gửi email
+           
             emailService.sendPaymentSuccessEmail(
                 order.getBuyerId(), 
                 order.getId(), 

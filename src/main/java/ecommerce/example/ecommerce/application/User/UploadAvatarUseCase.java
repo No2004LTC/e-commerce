@@ -20,7 +20,7 @@ public class UploadAvatarUseCase {
 
     @Transactional
     public String execute(String username, MultipartFile file) {
-        // 1. Kiểm tra đầu vào
+        
         if (username == null || username.isEmpty()) {
             throw new RuntimeException("User not authenticated");
         }
@@ -30,21 +30,20 @@ public class UploadAvatarUseCase {
         }
 
         try {
-            // 2. Tìm User trong Database bằng USERNAME (Thay vì dùng UserId.fromString)
-            // Lưu ý: Đảm bảo UserRepository của bạn có hàm findByUsername
+            
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
 
-            // 3. Upload ảnh lên MinIO
+           
             String avatarUrl = storageService.uploadFile(file, "avatars");
 
-            // 4. Cập nhật thông tin User
+           
             user.setAvatarUrl(avatarUrl);
             userRepository.persist(user);
 
             return avatarUrl;
         } catch (Exception e) {
-            // Log lỗi chi tiết để debug
+           
             System.err.println("Error during avatar upload: " + e.getMessage());
             throw new RuntimeException("Could not upload avatar: " + e.getMessage());
         }

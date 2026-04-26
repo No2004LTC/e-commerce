@@ -25,13 +25,13 @@ public class MoMoService {
 
     @Value("${momo.endpoint}")
     private String endpoint;
-    // @Value("${momo.redirect-url}")
+    
     private String redirectUrl = "https://momo.vn";
-    // @Value("${momo.ipn-url}")
+    
     private String ipnUrl = "https://momo.vn";
 
     public String createPaymentUrl(Order order) throws Exception {
-        // 1. Chuẩn bị dữ liệu
+       
         String time = String.valueOf(System.currentTimeMillis());
         String orderId = "ID" + time;
         String requestId = orderId; 
@@ -41,7 +41,7 @@ public class MoMoService {
         String requestType = "captureWallet";
         String extraData = ""; 
 
-        // 2. Chuỗi ký tên Alphabet chuẩn MoMo V2
+        
         String rawHash = "accessKey=" + accessKey + 
                 "&amount=" + amountStr + 
                 "&extraData=" + extraData +
@@ -57,11 +57,11 @@ public class MoMoService {
         log.info("[MOMO] RAW STRING: {}", rawHash);
         log.info("[MOMO] SIGNATURE: {}", signature);
 
-        // 3. JSON Body: Phải dùng LinkedHashMap để giữ thứ tự Alphabet
+        
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("partnerCode", partnerCode);
         body.put("requestId", requestId);
-        body.put("amount", amountLong); // Gửi dạng số Long
+        body.put("amount", amountLong); 
         body.put("orderId", orderId);
         body.put("orderInfo", orderInfo);
         body.put("redirectUrl", redirectUrl.trim());

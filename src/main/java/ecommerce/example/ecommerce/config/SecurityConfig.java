@@ -37,17 +37,16 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
         .csrf(AbstractHttpConfigurer::disable) 
         .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
-            // 1. ENDPOINT CÔNG KHAI
+            
             .requestMatchers("/api/auth/**", "/error", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
             .requestMatchers("/api/payment/**").permitAll() 
             
-            // 2. ENDPOINT CHAT & WEBSOCKET (Yêu cầu đăng nhập)
-            // Mở khóa cho API lấy lịch sử chat
+            
             .requestMatchers("/api/chat/**").authenticated() 
-            // WebSocket endpoint
+            
             .requestMatchers("/ws/**", "/ws-raw/**").authenticated()
 
-            // 3. CÁC API NGHIỆP VỤ KHÁC
+            
             .requestMatchers("/api/profile/**").authenticated()
             .requestMatchers("/api/products/**").authenticated()
             .requestMatchers("/api/cart/**").authenticated()

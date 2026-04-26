@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public record Product(
     String id,
-    String ownerId, // Thêm
+    String ownerId, 
     String productCode,
     String name,
     String description,
@@ -14,5 +14,5 @@ public record Product(
     Integer soldQuantity,
     String warehouse,
     String supplier,
-    String status // Thêm
+    String status 
 ) {}

@@ -21,7 +21,7 @@ public class MinioStorageService {
 
     public String uploadFile(MultipartFile file, String folder) {
         try {
-            // Log để kiểm tra URL đang dùng là gì
+            
             log.info("Connecting to MinIO at: {}", minioProperties.getUrl());
 
             boolean found = minioClient.bucketExists(BucketExistsArgs.builder()
@@ -44,11 +44,11 @@ public class MinioStorageService {
 
             return String.format("%s/%s", minioProperties.getBucket(), fileName);
         } catch (Exception e) {
-            // QUAN TRỌNG: In toàn bộ StackTrace ra console để debug
+            
             e.printStackTrace();
             log.error("Chi tiết lỗi MinIO: {}", e.getMessage());
 
-            // Trả về thông báo lỗi cụ thể thay vì chung chung
+            
             throw new RuntimeException("MinIO Error [" + e.getClass().getSimpleName() + "]: " + e.getMessage());
         }
     }

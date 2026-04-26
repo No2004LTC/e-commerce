@@ -45,22 +45,22 @@ public class RegisterUserUseCase {
         Role userRole = roleRepository.findByName("ROLE_USER")
                 .orElseThrow(() -> new UseCaseException("Default role not found"));
 
-        // 4. Mã hóa mật khẩu (Argon2/BCrypt tùy config của bạn)
+        
         String hashedPassword = passwordEncoder.encode(request.getPassword());
 
-        // 5. Tạo Entity User mới với UUID ngẫu nhiên
+        
         User user = new User(UserId.random(), request.getUsername(), request.getEmail(), hashedPassword, userRole);
 
-        // 6. Lưu vào Database
+        
         User savedUser = userService.register(user);
 
-        // 7. CẬP NHẬT: Tạo JWT với 2 tham số (username và userId)
+      
         String token = jwtTokenProvider.generateToken(
                 savedUser.getUsername(),
                 savedUser.getId().toString()
         );
 
-        // 8. Trả về Response cho Controller
+       
         return new AuthResponse(
                 savedUser.getId().toString(),
                 token,

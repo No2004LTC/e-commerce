@@ -24,7 +24,7 @@ public class PlaceOrderUseCase {
 
     @Transactional
     public String execute(String userIdOrUsername) throws Exception {
-        // 1. Tìm User để lấy Email thật
+        
         var user = userJpaRepository.findByUsername(userIdOrUsername)
                 .stream().findFirst()
                 .or(() -> {
@@ -39,26 +39,26 @@ public class PlaceOrderUseCase {
         String realEmail = user.getEmail();
         log.info("[PLACE ORDER] Đã tìm thấy Email thật: {}", realEmail);
 
-        // 2. LẤY GIỎ HÀNG (Dòng này bị thiếu nên gây ra lỗi 'cannot be resolved')
+        
         var cart = cartGateway.findByUserId(userIdOrUsername)
                 .orElseThrow(() -> new RuntimeException("Giỏ hàng của " + userIdOrUsername + " đang trống!"));
 
-        // 3. Tạo đơn hàng (Sử dụng cart ở trên để lấy tổng tiền)
+        
         Order order = Order.builder()
                 .id(UUID.randomUUID().toString())
                 .buyerId(realEmail) 
                 .sellerId("VIETQR_STORE")
-                .totalAmount(cart.getTotalPrice()) // Bây giờ cart đã 'resolved'
+                .totalAmount(cart.getTotalPrice()) 
                 .status("PENDING")
                 .build();
 
-        // 4. Lưu đơn hàng và dọn dẹp giỏ hàng
+        
         orderRepository.save(order);
         cartGateway.deleteByUserId(userIdOrUsername);
 
         log.info("[PLACE ORDER] Đã lưu đơn hàng #{} thành công.", order.getId());
 
-        // 5. Trả về link QR
+       
         return vietQRService.createPaymentUrl(order);
     }
 }

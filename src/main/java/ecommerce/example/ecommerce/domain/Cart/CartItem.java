@@ -15,11 +15,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class CartItem implements Serializable {
     private String productId;
     private String name;
-    private BigDecimal price; // Dùng BigDecimal cho chuẩn tiền tệ
+    private BigDecimal price; 
     private int quantity;
     private String productAvatar;
 
-    // Hàm này giúp bạn lấy tổng tiền của dòng này (ví dụ: 2 cái iPhone)
+    
     public BigDecimal getSubTotal() {
         return price.multiply(BigDecimal.valueOf(quantity));
     }

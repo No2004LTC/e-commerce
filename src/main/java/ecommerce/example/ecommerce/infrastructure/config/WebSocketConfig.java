@@ -14,7 +14,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        // Điểm kết nối duy nhất: ws://localhost:8080/chat
+        
         registry.addHandler(chatWebSocketHandler, "/chat")
                 .setAllowedOrigins("*");
     }

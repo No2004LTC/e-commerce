@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-// Thêm trường password vào DTO
+
 record UpdateProfileRequest(String username, String email, String avatarUrl, String password) {}
 
 @RestController
@@ -42,7 +42,7 @@ public class ProfileController {
                 request.username(),
                 request.email(), 
                 
-                request.password(), // Truyền password vào đây
+                request.password(), 
                  request.avatarUrl()
         );
         return ResponseEntity.ok(updated);
@@ -58,7 +58,7 @@ public ResponseEntity<String> uploadAvatar(
         @RequestParam("file") MultipartFile file, 
         Authentication authentication) {
     
-    // Lấy name (thường là UUID string) từ Token
+   
     String currentUserId = authentication.getName(); 
     
     System.out.println("DEBUG: Current User ID from Token: " + currentUserId);

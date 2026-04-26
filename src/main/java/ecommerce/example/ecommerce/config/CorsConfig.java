@@ -17,7 +17,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         
         config.setAllowCredentials(true);
-        // Liệt kê các domain được phép thay vì dùng "*" để an toàn và tránh lỗi với Credentials
+       
         config.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000", 
             "http://localhost:5173", 

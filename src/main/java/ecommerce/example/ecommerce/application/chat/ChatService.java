@@ -13,7 +13,7 @@ public class ChatService {
     private final ChatRepository chatRepository;
 
     public ChatMessage processAndSave(ChatMessage message) {
-        // Gán thời gian hiện tại nếu chưa có
+        
         if (message.getTimestamp() == null) {
             message.setTimestamp(LocalDateTime.now().toString());
         }

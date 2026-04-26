@@ -17,7 +17,7 @@ public class RedisCartGatewayImpl implements CartGateway {
 
     @Override
     public void save(Cart cart) {
-        // Lưu giỏ hàng vào Redis với thời gian hết hạn là 7 ngày
+        
         redisTemplate.opsForValue().set(KEY_PREFIX + cart.getUserId(), cart, 7, TimeUnit.DAYS);
     }
 

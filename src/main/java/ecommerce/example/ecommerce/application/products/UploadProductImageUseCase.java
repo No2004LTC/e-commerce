@@ -31,7 +31,7 @@ public class UploadProductImageUseCase {
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productIdStr));
 
-            // Upload vào folder "products"
+           
             String imageUrl = storageService.uploadFile(file, "products");
 
             product.setProductImageUrl(imageUrl);

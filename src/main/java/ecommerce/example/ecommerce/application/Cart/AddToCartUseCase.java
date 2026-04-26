@@ -21,12 +21,12 @@ public class AddToCartUseCase {
         Product product = productService.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
 
-        // 1. Logic C2C: Không được tự mua hàng của chính mình
+       
         if (product.getOwnerId().equals(userId)) {
             throw new RuntimeException("Bạn không thể thêm sản phẩm của chính mình vào giỏ hàng!");
         }
 
-        // 2. Kiểm tra kho hàng trước khi thêm vào giỏ
+       
         if (product.getStockQuantity() < quantity) {
             throw new RuntimeException("Kho hàng chỉ còn " + product.getStockQuantity() + " sản phẩm.");
         }

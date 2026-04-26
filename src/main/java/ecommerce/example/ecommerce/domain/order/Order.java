@@ -23,7 +23,7 @@ public class Order {
 
     private LocalDateTime createdAt;
 
-    @PrePersist // Tự động gán thời gian khi tạo
+    @PrePersist 
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }

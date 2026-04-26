@@ -16,7 +16,7 @@ public class CreateProductUseCase {
         ecommerce.example.ecommerce.domain.products.Product entity = new ecommerce.example.ecommerce.domain.products.Product();
         
         entity.setId(ProductId.generate());
-        entity.setOwnerId(ownerId); // Quan trọng: Ai tạo thì người đó là chủ kho
+        entity.setOwnerId(ownerId); 
         entity.setProductCode("PROD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         entity.setName(request.name());
         entity.setPrice(request.price());

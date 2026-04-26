@@ -24,7 +24,7 @@ public class LoginUserUseCase {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    // Trong file LoginUserUseCase.java
+    
     public AuthResponse execute(LoginRequest request) {
         User user = repository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new UseCaseException("Invalid username or password"));
@@ -33,7 +33,7 @@ public class LoginUserUseCase {
             throw new UseCaseException("Invalid username or password");
         }
 
-        // Truyền thêm ID vào đây
+        
         String token = jwtTokenProvider.generateToken(user.getUsername(), user.getId().toString());
 
         return new AuthResponse(user.getId().toString(), token, user.getUsername(), user.getRole().getName());
