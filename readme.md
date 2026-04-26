@@ -1,112 +1,72 @@
-🛒 E-commerce Backend System
-A high-performance, scalable e-commerce backend built with Java 17, Spring Boot 3, and Clean Architecture. This system features a multi-channel payment gateway, real-time order tracking, and automated customer communication.
+🛒  Modern E-commerce & Real-time Platform
+It is a high-performance E-commerce backend system built with Java 17 and Spring Boot 3. The project strictly adheres to Clean Architecture principles to ensure maintainability, scalability, and high testability. It features real-time interactions, secure authentication, and a robust system design.
 
-📑 Table of Contents
-Tech Stack
+🛠 Tech Stack
+Language: Java 17
 
-System Architecture
+Framework: Spring Boot 3
 
-Key Features
+Architecture: Clean Architecture (Domain, Application, Infrastructure, Adapter)
 
-Database Migrations
+Database: MySQL / PostgreSQL (RDBMS)
 
-Installation & Setup
+In-Memory Data / Cache: Redis (OTP handling, Session management)
 
-Postman Testing Guide
+Security: Spring Security, JWT (JSON Web Tokens), Argon2 Password Hashing
 
-🚀 Tech Stack
-Core: Java 17, Spring Boot 3.2+
+Real-time Engine: Raw WebSocket (Custom Handler for high-control communication)
 
-Storage: * MySQL: Primary relational database for persistence.
+Build Tool: Maven
 
-Redis: High-speed storage for Shopping Carts, Caching, and Pub/Sub events.
+Containerization: Docker & Docker Compose
 
-MinIO: Object storage for product images and digital assets.
+🌟 Core Features
+1. Authentication & Security
+JWT Authentication: Secure stateless session management.
 
-Security: Spring Security + JWT (Stateless Authentication).
+Role-Based Access Control (RBAC): Fine-grained permissions for Users and Admins.
 
-Real-time: WebSocket (STOMP protocol) & SockJS.
+OTP System: 16-character App Password integration with Gmail SMTP for password recovery and account verification, cached in Redis with TTL.
 
-Payments: Integrated Multi-Gateway (MoMo, VNPAY, VietQR).
+2. Real-time Interaction Engine
+Raw WebSocket Chat: 1-1 real-time messaging between Customers and Shops.
 
-DevOps: Docker Compose, Makefile (Automation), Liquibase (Migrations).
+Automated Greeting System: Intelligent system signals (INIT_CHAT) to trigger personalized welcome messages.
 
-🏗 System Architecture
-The project follows Clean Architecture to ensure the core business logic remains independent of external frameworks:
+State Management: Tracking active sessions and user interaction states.
 
-Domain: Core Entities, Value Objects (e.g., UserId), and Repository Interfaces.
+3. E-commerce Logistics
+Product Management: Cataloging with category and supplier associations.
 
-Application: Use Cases (e.g., PlaceOrderUseCase), DTOs, and internal services.
+Order Processing: Cleanly decoupled logic for transaction management.
 
-Adapters:
+User Profiles: Comprehensive profile management including bio and secure credential storage.
 
-Web: REST Controllers and WebSocket Message Handlers.
+🏗 Project Structure
+Plaintext
+src/main/java/ecommerce/example/ecommerce/
+├── domain/         # Core business logic and entities (Pure Java)
+├── application/    # Use cases and service orchestrators
+├── adapter/        # External interfaces (Web Controllers, Persistence Impl)
+│   ├── web/        # WebSocket Handlers and REST Controllers
+│   └── persistence/# JpaRepositories and Entity Mappings
+└── infrastructure/ # Framework configurations (Security, WebSocket Config)
+🚀 Getting Started
+Prerequisites
+JDK 17
 
-Persistence: JPA Entities and JpaRepository implementations.
+Docker & Docker Compose
 
-Infrastructure: External service configurations (Mail, Security, Payment Gateways).
+Maven
 
-✨ Key Features
-💳 Integrated Payment Gateway
-A unified interface supporting multiple payment providers:
+Installation
+Clone the repository: git clone https://github.com/No2004LTC/e-commerce.git
 
-VietQR: Dynamic QR code generation for bank transfers.
+Setup infrastructure: docker-compose up -d (Redis, MySQL)
 
-MoMo & VNPAY: Secure payment processing with IPN (Instant Payment Notification) support.
+Configure application.properties (see Security section below).
 
-📦 Real-time Order Tracking
-Leveraging Event-Driven logic to keep users informed:
+Run the application: make run
 
-Technology: WebSocket + Redis Pub/Sub.
-
-Workflow: When an order status changes (e.g., PENDING → SHIPPING), the system triggers a background event that updates the DB, sends an Email, and pushes a real-time notification to the UI.
-
-📧 Automated Email Integration
-Sends detailed transaction receipts once payment is confirmed.
-
-Automated status updates (Packing, Shipping, Delivered) sent directly to the user's registered email.
-
-Processed asynchronously using @Async to maintain high API responsiveness.
-
-💬 Real-time 1-1 Chat
-Support for direct customer-to-shop communication.
-
-Auto-greeting: Instant "lónghop" welcome message when a user initiates a chat.
-
-History: Persistent chat logs stored in MySQL for seamless continuity across sessions.
-
-🛠 Installation & Setup
-We use a Makefile to automate environment setup. Ensure you have Docker, Java 17, and Maven installed.
-
-1. Initialize Infrastructure
-Start MySQL, Redis, and MinIO containers:
-
-Bash
-make up-db
-2. Database Migration
-Run Liquibase to create tables and seed initial data:
-
-Bash
-make migrate-up
-3. Run Application
-Build and start the Spring Boot server:
-
-Bash
-make build
-make run
-🧪 Postman Testing Guide
-Flow A: Payment & Tracking
-Auth: POST /api/auth/login to obtain a JWT.
-
-Order: POST /api/orders (Include Bearer Token). Note the orderId.
-
-Confirm: POST /api/payment/confirm-payment/{orderId}.
-
-Track: Update status via PUT /api/orders/{orderId}/status. Observe the real-time log and check your Inbox for the notification.
-
-Flow B: WebSocket Chat
-Connect: Open a WebSocket request to ws://localhost:8080/ws-raw.
-
-Subscribe: Listen on /user/{username}/queue/messages.
-
-Start Chat: Send a message to /app/start-chat to trigger the longshop auto-greeting.
+🛡 Security Note
+Sensitive information (Email App Passwords, DB Credentials) must be managed via environment variables. Never commit .env or sensitive properties to version control.
