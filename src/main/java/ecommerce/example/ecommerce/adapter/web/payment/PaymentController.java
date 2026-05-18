@@ -4,7 +4,7 @@ import ecommerce.example.ecommerce.infrastructure.email.EmailService;
 import ecommerce.example.ecommerce.application.products.ProductService;
 import ecommerce.example.ecommerce.domain.order.Order;
 import ecommerce.example.ecommerce.domain.order.OrderRepository;
-import ecommerce.example.ecommerce.infrastructure.payment.vietqr.VietQRService; // Import thằng mới này vào
+import ecommerce.example.ecommerce.infrastructure.payment.vietqr.VietQRService; 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class PaymentController {
         
         String qrUrl = vietQRService.createPaymentUrl(order);
 
-        log.info("[VIETQR] Đã tạo link ảnh QR thành công cho đơn hàng: {}", orderId);
+        log.info(" Đã tạo link ảnh QR thành công cho đơn hàng: {}", orderId);
         
         
         return ResponseEntity.ok(Map.of("qrUrl", qrUrl));
@@ -41,7 +41,7 @@ public class PaymentController {
     
     @PostMapping("/confirm-payment/{orderId}")
     public ResponseEntity<?> manualConfirm(@PathVariable String orderId) {
-        log.info("[MANUAL CONFIRM] Xác nhận thanh toán tay cho đơn hàng: {}", orderId);
+        log.info(" Xác nhận thanh toán tay cho đơn hàng: {}", orderId);
         updateOrderToPaid(orderId);
         return ResponseEntity.ok(Map.of("message", "Đã xác nhận thanh toán và gửi Email thành công!"));
     }

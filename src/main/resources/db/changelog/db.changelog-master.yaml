@@ -4,6 +4,8 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/202603161714_create_role_table.sql
   - include:
+        file: db/changelog/migrations/202605101507_create_categories_table.sql
+  - include:
       file: db/changelog/migrations/202603232036_create_products_table.sql
   - include:
       file: db/changelog/migrations/202603251805_create_suppliers_table.sql
@@ -13,3 +15,7 @@ databaseChangeLog:
       file: db/changelog/migrations/202604061639_create_order_items_table.sql
   - include:
         file: db/changelog/migrations/202604161627_create_chat_message_table.sql
+  - include:
+        file: db/changelog/migrations/202605101507_create_product_reviews_table.sql
+  - include:
+        file: db/changelog/migrations/202605101508_create_wishlists_table.sql

@@ -2,7 +2,8 @@ package ecommerce.example.ecommerce.application.User;
 
 import ecommerce.example.ecommerce.domain.user.User;
 import ecommerce.example.ecommerce.domain.user.UserRepository;
-import ecommerce.example.ecommerce.infrastructure.minio.MinioStorageService;
+import ecommerce.example.ecommerce.infrastructure.db.minio.MinioStorageService;
+
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;

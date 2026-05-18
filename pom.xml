@@ -85,7 +85,6 @@
             <artifactId>minio</artifactId>
             <version>8.5.5</version>
         </dependency>
-
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>

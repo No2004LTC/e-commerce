@@ -5,7 +5,7 @@ ifneq (,$(wildcard .env))
 endif
 
 DOCKER_COMPOSE_FILE := compose.yaml
-
+CHANGELOG_DIR := src/main/resources/db/changelog/migrations
 .PHONY: build up up-db run down tidy migrate-up migrate-down migrate-drop db-reset new-migration
 
 # Build jar

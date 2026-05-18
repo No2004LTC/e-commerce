@@ -1,4 +1,4 @@
-package ecommerce.example.ecommerce.infrastructure.minio;
+package ecommerce.example.ecommerce.infrastructure.db.minio;
 
 import ecommerce.example.ecommerce.infrastructure.config.MinioProperties;
 import io.minio.BucketExistsArgs;

@@ -30,27 +30,29 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-    @Bean
+   @Bean
 public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .csrf(AbstractHttpConfigurer::disable) 
         .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
-            
             .requestMatchers("/api/auth/**", "/error", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
             .requestMatchers("/api/payment/**").permitAll() 
             
+            // CHO PHÉP XEM SẢN PHẨM & CATEGORY KHÔNG CẦN TOKEN
+            .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**").permitAll()
+            .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories/**").permitAll()
             
+            // CÁC THAO TÁC CÒN LẠI (POST/PUT/DELETE) THÌ MỚI CẦN TOKEN
             .requestMatchers("/api/chat/**").authenticated() 
-            
+            .requestMatchers("/api/categories/**").authenticated()
             .requestMatchers("/ws/**", "/ws-raw/**").authenticated()
-
-            
             .requestMatchers("/api/profile/**").authenticated()
-            .requestMatchers("/api/products/**").authenticated()
+            .requestMatchers("/api/products/**").authenticated() // Các lệnh POST/PUT/DELETE sản phẩm
             .requestMatchers("/api/cart/**").authenticated()
-            .requestMatchers("/api/orders", "/api/orders/**").authenticated() 
+            .requestMatchers("/api/orders/**").authenticated()
+            .requestMatchers("/api/wishlist/**").authenticated() // Thêm wishlist vào đây
             
             .anyRequest().authenticated()
         )

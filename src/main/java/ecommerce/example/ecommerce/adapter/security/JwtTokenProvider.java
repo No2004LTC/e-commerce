@@ -3,8 +3,8 @@ package ecommerce.example.ecommerce.adapter.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -12,31 +12,24 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 @Component
 public class JwtTokenProvider {
 
-    private Key key;
+    // Nó sẽ tự động lấy từ file application.properties của bạn
+    @Value("${jwt.secret}")
+    private String secretKey;
 
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
-   
-    @PostConstruct
-    public void init() {
-       
-        this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    }
-
-    
+    // Giải mã chuỗi Base64 từ file properties để làm Signing Key
     private Key getSigningKey() {
-        return this.key;
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    /**
-     * @param username 
-     * @param userId 
-     */
     public String generateToken(String username, String userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
@@ -44,23 +37,27 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
-                .setIssuedAt(new Date())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                // jwtExpiration của bạn đang là 3600000 (1 giờ)
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    
+    // Các hàm extractUsername, extractUserId, isTokenValid giữ nguyên như cũ...
     public String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();
+        return extractClaim(token, Claims::getSubject);
     }
 
-   
     public String extractUserId(String token) {
         return extractAllClaims(token).get("userId", String.class);
     }
 
-    
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
     public boolean isTokenValid(String token) {
         try {
             Jwts.parserBuilder()
@@ -69,12 +66,10 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (Exception e) {
-            
             return false;
         }
     }
 
-    
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())

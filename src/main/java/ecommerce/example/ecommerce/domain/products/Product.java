@@ -14,7 +14,8 @@ public class Product {
 
     @Column(name = "owner_id", nullable = false)
     private String ownerId; 
-
+    @Column(name = "category_id")
+    private String categoryId;  
     @Column(name = "product_code", unique = true, nullable = false)
     private String productCode;
 
