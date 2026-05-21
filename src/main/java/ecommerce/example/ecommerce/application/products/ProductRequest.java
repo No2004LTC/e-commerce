@@ -8,5 +8,6 @@ public record ProductRequest(
     BigDecimal price,
     Integer stockQuantity,
     String warehouse,
-    String supplier
+    String supplier,
+    String status
 ) {}

@@ -14,7 +14,8 @@ import java.util.UUID;
 public class AddProductReviewUseCase {
     private final ReviewRepository reviewRepository;
 
-    @Getter @Builder
+    @Getter 
+    @Builder
     public static class Command {
         private String productId;
         private String userId;
@@ -29,7 +30,7 @@ public class AddProductReviewUseCase {
             command.getUserId(),
             command.getRating(),
             command.getComment(),
-            null // created_at sẽ được @PrePersist xử lý
+            null // Trường createdAt sẽ do cơ sở dữ liệu hoặc @PrePersist tự động xử lý
         );
         reviewRepository.save(review);
     }

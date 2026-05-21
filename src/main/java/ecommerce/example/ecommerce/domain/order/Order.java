@@ -12,7 +12,7 @@ import java.util.List;
 public class Order {
     @Id // Khóa chính
     private String id;
-    
+    private String customerId;
     private String buyerId;
     private String sellerId;
     private BigDecimal totalAmount;
