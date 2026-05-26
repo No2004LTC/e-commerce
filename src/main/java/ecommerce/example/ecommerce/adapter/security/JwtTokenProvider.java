@@ -31,8 +31,21 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(String username, String userId) {
+        return generateToken(username, userId, null);
+    }
+
+    /**
+     * Sinh JWT token với role được nhúng vào claims.
+     * role nên có prefix ROLE_ (để khớp với SimpleGrantedAuthority).
+     * Ví dụ: "ROLE_ADMIN", "ROLE_SHOP_OWNER", "ROLE_USER".
+     */
+    public String generateToken(String username, String userId, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
+        if (role != null && !role.isBlank()) {
+            // Đảm bảo luôn có prefix ROLE_
+            claims.put("role", role.startsWith("ROLE_") ? role : "ROLE_" + role);
+        }
         
         return Jwts.builder()
                 .setClaims(claims)
@@ -51,6 +64,14 @@ public class JwtTokenProvider {
 
     public String extractUserId(String token) {
         return extractAllClaims(token).get("userId", String.class);
+    }
+
+    /**
+     * Extract role từ JWT claims (có prefix ROLE_, ví dụ: "ROLE_ADMIN").
+     * Trả về null nếu role không có trong token (token cũ chưa embed role).
+     */
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

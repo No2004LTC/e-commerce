@@ -10,9 +10,9 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/202603251805_create_suppliers_table.sql
   - include:
-        file: db/changelog/migrations/202605212151_create_customers_table.sql
-  - include:
       file: db/changelog/migrations/202604061639_create_orders_table.sql
+  - include:
+        file: db/changelog/migrations/202605212151_create_customers_table.sql
   - include:
       file: db/changelog/migrations/202604061639_create_order_items_table.sql
   - include:
@@ -21,3 +21,9 @@ databaseChangeLog:
         file: db/changelog/migrations/202605101507_create_product_reviews_table.sql
   - include:
         file: db/changelog/migrations/202605101508_create_wishlists_table.sql
+  - include:
+        file: db/changelog/migrations/202605241600_add_parent_id_to_users_table.sql
+  - include:
+        file: db/changelog/migrations/202605252200_add_profile_fields_to_users_table.sql
+  - include:
+        file: db/changelog/migrations/202605262000_add_seller_name_to_orders_table.sql

@@ -1,5 +1,6 @@
 package ecommerce.example.ecommerce.domain.order;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*; 
 import lombok.*;
 import java.math.BigDecimal;
@@ -15,10 +16,23 @@ public class Order {
     private String customerId;
     private String buyerId;
     private String sellerId;
+
+    @Column(name = "seller_name")
+    private String sellerName;
+
     private BigDecimal totalAmount;
     private String status;
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id") 
+
+    @Transient
+    @Builder.Default
+    private String paymentMethod = "CHUYỂN KHOẢN";
+
+    @Transient
+    @Builder.Default
+    private String paymentStatus = "SUCCESS";
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<OrderItem> items;
 
     private LocalDateTime createdAt;

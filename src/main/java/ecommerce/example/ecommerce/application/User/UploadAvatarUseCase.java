@@ -31,20 +31,18 @@ public class UploadAvatarUseCase {
         }
 
         try {
-            
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
+            // Hỗ trợ tìm kiếm theo cả email (JWT Subject) hoặc username
+            User user = userRepository.findByEmail(username)
+                    .or(() -> userRepository.findByUsername(username))
+                    .orElseThrow(() -> new RuntimeException("User not found with identity: " + username));
 
-           
             String avatarUrl = storageService.uploadFile(file, "avatars");
 
-           
             user.setAvatarUrl(avatarUrl);
             userRepository.persist(user);
 
             return avatarUrl;
         } catch (Exception e) {
-           
             System.err.println("Error during avatar upload: " + e.getMessage());
             throw new RuntimeException("Could not upload avatar: " + e.getMessage());
         }

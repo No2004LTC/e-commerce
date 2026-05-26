@@ -16,9 +16,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -30,42 +30,74 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-   @Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .csrf(AbstractHttpConfigurer::disable) 
-        .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/**", "/error", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-            .requestMatchers("/api/payment/**").permitAll() 
-            
-            // CHO PHÉP XEM SẢN PHẨM & CATEGORY KHÔNG CẦN TOKEN
-            .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**").permitAll()
-            .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories/**").permitAll()
-            
-            // CÁC THAO TÁC CÒN LẠI (POST/PUT/DELETE) THÌ MỚI CẦN TOKEN
-            .requestMatchers("/api/chat/**").authenticated() 
-            .requestMatchers("/api/categories/**").authenticated()
-            .requestMatchers("/ws/**", "/ws-raw/**").authenticated()
-            .requestMatchers("/api/profile/**").authenticated()
-            .requestMatchers("/api/products/**").authenticated() // Các lệnh POST/PUT/DELETE sản phẩm
-            .requestMatchers("/api/cart/**").authenticated()
-            .requestMatchers("/api/orders/**").authenticated()
-            .requestMatchers("/api/wishlist/**").authenticated() // Thêm wishlist vào đây
-            
-            .anyRequest().authenticated()
-        )
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(java.util.List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(java.util.List.of("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowCredentials(true);
 
-    return http.build();
-}
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return new CorsFilter(source);
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                // OPTIONS requests — permitAll to avoid preflight issues
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+
+                // Auth endpoints — công khai
+                .requestMatchers("/api/auth/**", "/error").permitAll()
+
+                // Swagger / OpenAPI — công khai
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+
+                // Payment callbacks — công khai (webhook từ MoMo, VNPay, VietQR, etc.)
+                .requestMatchers("/api/payment/**").permitAll()
+
+                // WebSocket endpoints — permitAll để handshake HTTP Upgrade không bị chặn.
+                .requestMatchers("/chat/**", "/ws/**", "/ws-raw/**").permitAll()
+
+                // Xem sản phẩm & danh mục & đánh giá — công khai, không cần đăng nhập
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reviews/**").permitAll()
+
+                // Phân quyền cho REST API endpoints (sản phẩm, chi nhánh, hóa đơn, khách hàng)
+                .requestMatchers("/api/products/**", "/api/branches/**", "/api/orders/**", "/api/customers/**")
+                    .hasAnyAuthority("ROLE_ADMIN", "ROLE_SHOP_OWNER", "ROLE_BRANCH")
+
+                .requestMatchers("/api/users/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SHOP_OWNER")
+                .requestMatchers("/api/profile/**").authenticated()
+                .requestMatchers("/api/analytics/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SHOP_OWNER", "ROLE_BRANCH")
+
+                // Mọi request khác yêu cầu xác thực JWT
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    /**
+     * Nguồn cấu hình CORS duy nhất cho toàn hệ thống.
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
+
+        configuration.setAllowedOrigins(java.util.List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(java.util.List.of("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

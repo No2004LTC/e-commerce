@@ -14,7 +14,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 
-record UpdateProfileRequest(String username, String email, String avatarUrl, String password) {}
+record UpdateProfileRequest(
+    String username, 
+    String email, 
+    String avatarUrl, 
+    String password,
+    String fullName,
+    String phone,
+    String address
+) {}
 
 @RestController
 @RequestMapping("/api/profile")
@@ -24,6 +32,7 @@ public class ProfileController {
     private final UpdateProfileUseCase updateProfileUseCase;
     private final UserService userService;
     private final UploadAvatarUseCase uploadAvatarUseCase;
+
     @GetMapping("/{id}")
     public ResponseEntity<Profile> getProfile(@PathVariable String id) {
         return userService.findById(new UserId(UUID.fromString(id)))
@@ -41,9 +50,11 @@ public class ProfileController {
                 new UserId(UUID.fromString(id)), 
                 request.username(),
                 request.email(), 
-                
                 request.password(), 
-                 request.avatarUrl()
+                request.avatarUrl(),
+                request.fullName(),
+                request.phone(),
+                request.address()
         );
         return ResponseEntity.ok(updated);
     }
@@ -53,16 +64,16 @@ public class ProfileController {
         userService.deleteById(new UserId(UUID.fromString(id)));
         return ResponseEntity.noContent().build();
     }
-  @PostMapping(value = "/avatar", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
-public ResponseEntity<String> uploadAvatar(
-        @RequestParam("file") MultipartFile file, 
-        Authentication authentication) {
-    
-   
-    String currentUserId = authentication.getName(); 
-    
-    System.out.println("DEBUG: Current User ID from Token: " + currentUserId);
-    String avatarUrl = uploadAvatarUseCase.execute(currentUserId, file);
-    return ResponseEntity.ok(avatarUrl);
-}
+
+    @PostMapping(value = "/avatar", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadAvatar(
+            @RequestParam("file") MultipartFile file, 
+            Authentication authentication) {
+        
+        String currentUserId = authentication.getName(); 
+        
+        System.out.println("DEBUG: Current User ID from Token: " + currentUserId);
+        String avatarUrl = uploadAvatarUseCase.execute(currentUserId, file);
+        return ResponseEntity.ok(avatarUrl);
+    }
 }

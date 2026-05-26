@@ -7,7 +7,10 @@ public record Profile(
     String username,
     String email,
     String avatarUrl,
-    String role
+    String role,
+    String fullName,
+    String phone,
+    String address
 ) {
     public static Profile fromDomain(User user) {
         return new Profile(
@@ -15,7 +18,10 @@ public record Profile(
             user.getUsername(),
             user.getEmail(),
             user.getAvatarUrl(),
-            user.getRole().getName()
+            user.getRole().getName(),
+            user.getFullName(),
+            user.getPhone(),
+            user.getAddress()
         );
     }
 }

@@ -8,6 +8,7 @@ public interface CustomerRepository {
     List<Customer> findAll();
     Optional<Customer> findById(String id);
     Optional<Customer> findByPhone(String phone);
+    boolean existsByPhone(String phone);
     Customer save(Customer customer);
     void deleteById(String id);
 }

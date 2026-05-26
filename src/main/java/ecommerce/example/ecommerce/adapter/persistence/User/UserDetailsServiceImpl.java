@@ -22,16 +22,25 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        List<GrantedAuthority> authorities = user.getRole() != null ?
-                List.of(new SimpleGrantedAuthority(user.getRole().getName())) :
+        String roleName = "";
+        if (user.getRole() != null) {
+            roleName = user.getRole().getName();
+            if (roleName != null && !roleName.startsWith("ROLE_")) {
+                roleName = "ROLE_" + roleName;
+            }
+        }
+
+        List<GrantedAuthority> authorities = roleName != null && !roleName.isEmpty() ?
+                List.of(new SimpleGrantedAuthority(roleName)) :
                 List.of();
 
+        // Trả về UserDetails với email làm username chính của Spring Security Principal
         return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
+                user.getEmail(),
                 user.getPassword(),
                 authorities
         );

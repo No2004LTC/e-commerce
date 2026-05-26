@@ -41,26 +41,27 @@ public class RegisterUserUseCase {
             throw new UseCaseException("Email already exists");
         }
 
-        // 3. Lấy Role mặc định
-        Role userRole = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new UseCaseException("Default role not found"));
+        // 3. Lấy Role mặc định (ROLE_SHOP_OWNER)
+        Role userRole = roleRepository.findByName("ROLE_SHOP_OWNER")
+                .or(() -> roleRepository.findByName("SHOP_OWNER"))
+                .orElseGet(() -> {
+                    return roleRepository.save(new Role("ROLE_SHOP_OWNER"));
+                });
 
-        
         String hashedPassword = passwordEncoder.encode(request.getPassword());
 
-        
         User user = new User(UserId.random(), request.getUsername(), request.getEmail(), hashedPassword, userRole);
 
-        
         User savedUser = userService.register(user);
 
-      
+        // Truyền role vào JWT để filter có thể extract không cần hit DB.
+        // Sử dụng email làm subject.
         String token = jwtTokenProvider.generateToken(
-                savedUser.getUsername(),
-                savedUser.getId().toString()
+                savedUser.getEmail(),
+                savedUser.getId().toString(),
+                savedUser.getRole().getName()
         );
 
-       
         return new AuthResponse(
                 savedUser.getId().toString(),
                 token,

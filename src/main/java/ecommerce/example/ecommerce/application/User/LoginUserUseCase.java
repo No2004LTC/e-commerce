@@ -24,19 +24,18 @@ public class LoginUserUseCase {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    
     public AuthResponse execute(LoginRequest request) {
-        User user = repository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new UseCaseException("Invalid username or password"));
+        User user = repository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UseCaseException("Invalid email or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new UseCaseException("Invalid username or password");
+            throw new UseCaseException("Invalid email or password");
         }
 
-        
-        String token = jwtTokenProvider.generateToken(user.getUsername(), user.getId().toString());
+        // Truyền role vào JWT để filter có thể extract không cần hit DB
+        String roleName = (user.getRole() != null) ? user.getRole().getName() : "ROLE_USER";
+        String token = jwtTokenProvider.generateToken(user.getEmail(), user.getId().toString(), roleName);
 
         return new AuthResponse(user.getId().toString(), token, user.getUsername(), user.getRole().getName());
     }
 }
-

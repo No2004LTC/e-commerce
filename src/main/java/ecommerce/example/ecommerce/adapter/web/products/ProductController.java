@@ -2,15 +2,18 @@ package ecommerce.example.ecommerce.adapter.web.products;
 
 import ecommerce.example.ecommerce.application.dto.Product;
 import ecommerce.example.ecommerce.application.products.CreateProductUseCase;
-import ecommerce.example.ecommerce.application.products.ImportProductsUseCase; // Import thêm UseCase mới
+import ecommerce.example.ecommerce.application.products.ImportProductsUseCase;
 import ecommerce.example.ecommerce.application.products.ProductRequest;
 import ecommerce.example.ecommerce.application.products.UploadProductImageUseCase;
 import ecommerce.example.ecommerce.domain.products.ProductId;
 import ecommerce.example.ecommerce.domain.products.ProductRepository;
+import ecommerce.example.ecommerce.domain.user.User;
+import ecommerce.example.ecommerce.domain.user.UserRepository;
+import ecommerce.example.ecommerce.infrastructure.config.MinioProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication; 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,42 +30,84 @@ public class ProductController {
     private final ProductRepository productRepository;
     private final CreateProductUseCase createProductUseCase;
     private final UploadProductImageUseCase uploadProductImageUseCase;
-    private final ImportProductsUseCase importProductsUseCase; // Inject thêm UseCase xử lý Excel
+    private final ImportProductsUseCase importProductsUseCase;
+    private final MinioProperties minioProperties;
+    private final UserRepository userRepository;
 
-    @GetMapping("/me")
-    public ResponseEntity<List<Product>> getMyProducts(org.springframework.security.core.Authentication authentication) {
-        String userId = authentication.getName(); 
-        
-        List<Product> myProducts = productRepository.findAll().stream()
-            .filter(entity -> userId.equals(entity.getOwnerId()))
-            .map(entity -> new Product(
-                entity.getId().getValue(),
-                entity.getOwnerId(), 
-                entity.getProductCode(),
-                entity.getName(),
-                entity.getDescription(),
-                entity.getProductImageUrl(),
-                entity.getPrice(),
-                entity.getStockQuantity(),
-                entity.getSoldQuantity(),
-                entity.getWarehouse(),
-                entity.getSupplier(),
-                entity.getStatus() 
-            ))
+    private String resolveUserId(Authentication auth) {
+        return userRepository.findByEmail(auth.getName())
+                .or(() -> userRepository.findByUsername(auth.getName()))
+                .map(u -> u.getId().toString())
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại!"));
+    }
+
+    // =========================================================================
+    // PUBLIC: Lấy sản phẩm AVAILABLE — không cần đăng nhập (POS storefront)
+    // Query param: ?branchId={uuid} — nếu có, lọc theo chi nhánh cụ thể
+    //              (không có) — trả về tất cả sản phẩm AVAILABLE của toàn hệ thống
+    // =========================================================================
+    @GetMapping
+    public ResponseEntity<List<Product>> getAllProducts(
+            @RequestParam(name = "branchId", required = false) String branchId,
+            @RequestParam(name = "includeHidden", required = false, defaultValue = "false") boolean includeHidden) {
+
+        List<ecommerce.example.ecommerce.domain.products.Product> source;
+
+        if (branchId != null && !branchId.isBlank()) {
+            // Lọc theo chi nhánh cụ thể (owner_id = branchId)
+            source = productRepository.findByOwnerId(branchId);
+        } else {
+            // Không có branchId → lấy toàn bộ
+            source = productRepository.findAll();
+        }
+
+        List<Product> products = source.stream()
+            .filter(entity -> includeHidden || "AVAILABLE".equalsIgnoreCase(entity.getStatus()))
+            .map(this::toDto)
             .collect(Collectors.toList());
-            
+
+        return ResponseEntity.ok(products);
+    }
+
+    // =========================================================================
+    // PUBLIC: Lấy chi tiết một sản phẩm theo ID — không cần đăng nhập
+    // =========================================================================
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getProductById(@PathVariable String id) {
+        return productRepository.findById(ProductId.fromString(id))
+            .map(entity -> ResponseEntity.ok(toDto(entity)))
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    // =========================================================================
+    // AUTHENTICATED: Lấy danh sách sản phẩm của chính mình (theo ownerId)
+    // =========================================================================
+    @GetMapping("/me")
+    public ResponseEntity<List<Product>> getMyProducts(Authentication authentication) {
+        String userId = resolveUserId(authentication);
+
+        List<Product> myProducts = productRepository.findByOwnerId(userId).stream()
+            .map(entity -> toDto(entity))
+            .collect(Collectors.toList());
+
         return ResponseEntity.ok(myProducts);
     }
 
+    // =========================================================================
+    // AUTHENTICATED: Tạo mới sản phẩm
+    // =========================================================================
     @PostMapping
     public ResponseEntity<Product> create(
-            @RequestBody ProductRequest request, 
+            @RequestBody ProductRequest request,
             Authentication authentication) {
-        
-        String userId = authentication.getName(); 
-        return ResponseEntity.ok(createProductUseCase.execute(request, userId));
+        String userId = resolveUserId(authentication);
+        String targetOwnerId = (request.ownerId() != null && !request.ownerId().isBlank()) ? request.ownerId() : userId;
+        return ResponseEntity.ok(createProductUseCase.execute(request, targetOwnerId));
     }
 
+    // =========================================================================
+    // AUTHENTICATED: Upload ảnh sản phẩm lên MinIO
+    // =========================================================================
     @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadImage(
             @PathVariable String id,
@@ -72,19 +117,19 @@ public class ProductController {
     }
 
     // =========================================================================
-    // TÍNH NĂNG MỚI: IMPORT HÀNG LOẠT SẢN PHẨM TỪ FILE EXCEL CHO CHI NHÁNH/SHOP
+    // AUTHENTICATED: Import hàng loạt sản phẩm từ file Excel
     // =========================================================================
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> importExcel(
             @RequestParam("file") MultipartFile file,
             Authentication authentication) {
-        
+
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "File Excel trống, vui lòng chọn tệp hợp lệ!"));
+            return ResponseEntity.badRequest()
+                .body(Map.of("message", "File Excel trống, vui lòng chọn tệp hợp lệ!"));
         }
 
-        // Tự động nhận diện mã Shop lớn/Chi nhánh đang thao tác qua token bảo mật
-        String shopOwnerId = authentication.getName();
+        String shopOwnerId = resolveUserId(authentication);
 
         try {
             int importedCount = importProductsUseCase.execute(file, shopOwnerId);
@@ -100,46 +145,90 @@ public class ProductController {
         }
     }
 
+    // =========================================================================
+    // AUTHENTICATED: Cập nhật thông tin sản phẩm
+    // =========================================================================
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(
-            @PathVariable String id, 
-            @RequestBody ProductRequest request) {
-        
+            @PathVariable String id,
+            @RequestBody ProductRequest request,
+            @RequestParam(name = "branchId", required = false) String branchId) {
+
         ecommerce.example.ecommerce.domain.products.Product entity = productRepository.findById(
-            ecommerce.example.ecommerce.domain.products.ProductId.fromString(id)
+            ProductId.fromString(id)
         ).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
-        
+
         if (request.name() != null) entity.setName(request.name());
         if (request.description() != null) entity.setDescription(request.description());
-        if (request.price() != null && request.price().compareTo(BigDecimal.ZERO) > 0) entity.setPrice(request.price());
-        if (request.stockQuantity() != null && request.stockQuantity() >= 0) entity.setStockQuantity(request.stockQuantity());
+        if (request.price() != null && request.price().compareTo(BigDecimal.ZERO) > 0)
+            entity.setPrice(request.price());
+        if (request.stockQuantity() != null && request.stockQuantity() >= 0)
+            entity.setStockQuantity(request.stockQuantity());
         if (request.warehouse() != null) entity.setWarehouse(request.warehouse());
+        if (request.supplier() != null) entity.setSupplier(request.supplier());
+        if (request.status() != null) entity.setStatus(request.status());
         
-        if (request.status() != null) {
-            entity.setStatus(request.status()); 
+        // Gán ownerId bằng branchId từ query param nếu có, ngược lại dùng ownerId từ body
+        String targetOwnerId = (branchId != null && !branchId.isBlank()) ? branchId : request.ownerId();
+        if (targetOwnerId != null && !targetOwnerId.isBlank()) {
+            entity.setOwnerId(targetOwnerId);
         }
-        
+
         productRepository.save(entity);
-        
-        return ResponseEntity.ok(new Product(
+
+        return ResponseEntity.ok(toDto(entity));
+    }
+
+    // =========================================================================
+    // AUTHENTICATED: Xóa sản phẩm
+    // =========================================================================
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        productRepository.deleteById(ProductId.fromString(id));
+        return ResponseEntity.noContent().build();
+    }
+
+    // =========================================================================
+    // Helper: Chuyển đổi Domain Entity → DTO với MinIO URL đầy đủ
+    // productImageUrl đã là full URL (lưu từ MinioStorageService.uploadFile)
+    // Nếu chỉ lưu path tương đối, tự động build URL đầy đủ ở đây
+    // =========================================================================
+    private Product toDto(ecommerce.example.ecommerce.domain.products.Product entity) {
+        String imageUrl = resolveImageUrl(entity.getProductImageUrl());
+        return new Product(
             entity.getId().getValue(),
-            entity.getOwnerId(), 
+            entity.getOwnerId(),
             entity.getProductCode(),
             entity.getName(),
             entity.getDescription(),
-            entity.getProductImageUrl(),
+            imageUrl,
             entity.getPrice(),
             entity.getStockQuantity(),
             entity.getSoldQuantity(),
             entity.getWarehouse(),
             entity.getSupplier(),
-            entity.getStatus() 
-        ));
+            entity.getStatus()
+        );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        productRepository.deleteById(ProductId.fromString(id));
-        return ResponseEntity.noContent().build();
+    /**
+     * Đảm bảo productImageUrl luôn là URL CDN đầy đủ trỏ tới MinIO.
+     * - Nếu đã là URL đầy đủ (http/https): trả về nguyên si.
+     * - Nếu là path tương đối (ví dụ: "products/uuid_abc.jpg"): build URL đầy đủ.
+     * - Nếu null: trả về null (Frontend xử lý placeholder).
+     */
+    private String resolveImageUrl(String rawUrl) {
+        if (rawUrl == null || rawUrl.isBlank()) {
+            return null;
+        }
+        if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+            return rawUrl; // Đã là URL đầy đủ từ MinioStorageService
+        }
+        // Tự động build URL đầy đủ nếu chỉ lưu path tương đối
+        return String.format("%s/%s/%s",
+            minioProperties.getUrl(),
+            minioProperties.getBucket(),
+            rawUrl
+        );
     }
 }

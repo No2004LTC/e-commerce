@@ -10,6 +10,10 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Adapter tầng Persistence cho domain ProductRepository.
+ * Cầu nối giữa domain interface ProductRepository và Spring Data JPA.
+ */
 @Component
 @RequiredArgsConstructor
 public class MySQLProductRepositoryAdapter implements ProductRepository {
@@ -26,10 +30,9 @@ public class MySQLProductRepositoryAdapter implements ProductRepository {
         return productJpaRepository.save(product);
     }
 
-    // 🌟 SỬA ĐỔI: Truyền thẳng đối tượng ProductId, không cần tách .getValue().toString() nữa
     @Override
     public Optional<Product> findById(ProductId id) {
-        return productJpaRepository.findById(id); 
+        return productJpaRepository.findById(id);
     }
 
     @Override
@@ -37,7 +40,15 @@ public class MySQLProductRepositoryAdapter implements ProductRepository {
         return productJpaRepository.findAll();
     }
 
-    // 🌟 SỬA ĐỔI: Truyền thẳng đối tượng ProductId vào hàm delete của JPA
+    /**
+     * Tìm sản phẩm theo ownerId (branchId).
+     * Dùng cho: GET /api/products?branchId=xxx
+     */
+    @Override
+    public List<Product> findByOwnerId(String ownerId) {
+        return productJpaRepository.findByOwnerId(ownerId);
+    }
+
     @Override
     public void deleteById(ProductId id) {
         productJpaRepository.deleteById(id);

@@ -33,4 +33,9 @@ public class ReviewPersistenceAdapter implements ReviewRepository {
     public void delete(ReviewId id) {
         repository.deleteById(id);
     }
+
+    @Override
+    public List<Review> findAll() {
+        return repository.findAll();
+    }
 }

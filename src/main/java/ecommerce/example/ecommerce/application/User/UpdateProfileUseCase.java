@@ -17,10 +17,18 @@ public class UpdateProfileUseCase {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional 
-    public Profile execute(UserId id, String newUsername, String newEmail, String newPassword, String newAvatarUrl) {
-        User user = userService.findById(id)
-                .orElseThrow(() -> new UseCaseException("User not found " ));
+    public Profile execute(
+            UserId id, 
+            String newUsername, 
+            String newEmail, 
+            String newPassword, 
+            String newAvatarUrl,
+            String newFullName,
+            String newPhone,
+            String newAddress) {
         
+        User user = userService.findById(id)
+                .orElseThrow(() -> new UseCaseException("User not found"));
         
         if (newUsername != null && !newUsername.isBlank()) {
             user.setUsername(newUsername);
@@ -34,11 +42,21 @@ public class UpdateProfileUseCase {
             user.setAvatarUrl(newAvatarUrl);
         }
 
-        
         if (newPassword != null && !newPassword.isBlank()) {
             user.setPassword(passwordEncoder.encode(newPassword));
         }
-        
+
+        if (newFullName != null) {
+            user.setFullName(newFullName);
+        }
+
+        if (newPhone != null) {
+            user.setPhone(newPhone);
+        }
+
+        if (newAddress != null) {
+            user.setAddress(newAddress);
+        }
         
         User savedUser = userService.save(user);
         return Profile.fromDomain(savedUser);

@@ -33,6 +33,11 @@ public class MySQLCustomerRepositoryAdapter implements CustomerRepository {
     }
 
     @Override
+    public boolean existsByPhone(String phone) {
+        return customerJpaRepository.existsByPhone(phone);
+    }
+
+    @Override
     public Customer save(Customer customer) {
         CustomerEntity entity = toEntity(customer);
         CustomerEntity saved = customerJpaRepository.save(entity);

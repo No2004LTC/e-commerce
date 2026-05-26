@@ -47,4 +47,12 @@ public class Product {
             this.status = "OUT_OF_STOCK";
         }
     }
+
+    public Integer getStock() {
+        return this.stockQuantity;
+    }
+
+    public void setStock(Integer stock) {
+        this.stockQuantity = stock;
+    }
 }

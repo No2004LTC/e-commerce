@@ -7,7 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -16,7 +18,20 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
+/**
+ * JwtAuthenticationFilter — Kiểm tra JWT trên mỗi request.
+ *
+ * Chiến lược 2 tầng (Fast-path / Fallback):
+ *  1. Fast-path : Nếu JWT có embed "role" claim → tạo authentication ngay,
+ *                 không cần truy vấn database (giảm latency).
+ *  2. Fallback  : Nếu JWT cũ chưa có "role" → load UserDetails từ DB như cũ.
+ *
+ * Đảm bảo role luôn có prefix "ROLE_" để khớp với
+ * hasRole("ADMIN") / hasAnyRole("ADMIN","SHOP_OWNER") hoặc hasAnyAuthority trong SecurityConfig.
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -35,31 +50,51 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
 
-            
-            if (jwt != null) {
-                System.out.println("DEBUG: JWT Token found in request: " + jwt.substring(0, Math.min(jwt.length(), 10)) + "...");
-            }
-
             if (StringUtils.hasText(jwt) && tokenProvider.isTokenValid(jwt)) {
                 String username = tokenProvider.extractUsername(jwt);
 
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                    if (userDetails != null) {
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    // ── Fast-path: role đã được nhúng trong JWT claims ──────
+                    String roleFromJwt = tokenProvider.extractRole(jwt);
 
-                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                        System.out.println("DEBUG: Authentication set for user: " + username);
+                    UsernamePasswordAuthenticationToken authentication;
+
+                    if (StringUtils.hasText(roleFromJwt)) {
+                        // Đảm bảo prefix ROLE_
+                        String normalizedRole = roleFromJwt.startsWith("ROLE_")
+                                ? roleFromJwt
+                                : "ROLE_" + roleFromJwt;
+
+                        List<SimpleGrantedAuthority> authorities =
+                                Collections.singletonList(new SimpleGrantedAuthority(normalizedRole));
+
+                        // Tạo UserDetails tối giản — chỉ cần username & authorities
+                        UserDetails lightUser = User.withUsername(username)
+                                .password("") // password không dùng ở đây
+                                .authorities(authorities)
+                                .build();
+
+                        authentication = new UsernamePasswordAuthenticationToken(
+                                lightUser, null, authorities);
+
+                        logger.debug("JWT fast-path auth: user=" + username + ", role=" + normalizedRole);
+
+                    } else {
+                        // ── Fallback: token cũ chưa có role → load từ DB ────
+                        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                        authentication = new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+
+                        logger.debug("JWT fallback (DB) auth: user=" + username);
                     }
+
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
         } catch (Exception ex) {
-            System.err.println("DEBUG: Authentication Error: " + ex.getMessage());
-            logger.error("Could not set user authentication in security context", ex);
+            logger.error("Could not set user authentication in security context: " + ex.getMessage(), ex);
         }
 
         filterChain.doFilter(request, response);

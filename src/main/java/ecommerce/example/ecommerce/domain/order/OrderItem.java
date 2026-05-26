@@ -1,5 +1,6 @@
 package ecommerce.example.ecommerce.domain.order;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*; 
 import lombok.*;
 import java.math.BigDecimal;
@@ -16,4 +17,9 @@ public class OrderItem {
     private String productName;
     private BigDecimal priceAtPurchase;
     private int quantity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    @JsonBackReference
+    private Order order;
 }

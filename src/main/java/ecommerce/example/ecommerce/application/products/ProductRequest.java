@@ -9,5 +9,6 @@ public record ProductRequest(
     Integer stockQuantity,
     String warehouse,
     String supplier,
-    String status
+    String status,
+    String ownerId
 ) {}

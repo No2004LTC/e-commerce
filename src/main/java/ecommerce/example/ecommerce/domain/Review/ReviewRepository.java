@@ -8,4 +8,5 @@ public interface ReviewRepository {
     List<Review> findByProductId(String productId);
     Optional<Double> getAverageRatingByProductId(String productId);
     void delete(ReviewId id);
+    List<Review> findAll();
 }
