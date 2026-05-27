@@ -1,0 +1,199 @@
+[33mcommit 9e83215e4bb9e91a7714f7c970cd9d9237230b12[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Tue May 26 21:39:59 2026 +0700
+
+    chore:update BE (online shop supporting)
+
+[33mcommit d3272a2e3b32cfb2580a11d464a8a7b05020325d[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Thu May 21 23:05:11 2026 +0700
+
+    update:updateproduct
+
+[33mcommit 6046260451d62f226614189d48cd538ff5954c7e[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Mon May 18 21:46:15 2026 +0700
+
+    choke:update 3 service
+
+[33mcommit a46a79c397d2f042f4739213fb6859eee0ac5866[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/long[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mlong[m[33m)[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Sun Apr 26 23:14:02 2026 +0700
+
+    README.md
+
+[33mcommit ec489a7affaf6324b258157ce7afffa4225d8250[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Sun Apr 26 15:56:04 2026 +0700
+
+    feat: implement raw websocket chat and clean architecture
+
+[33mcommit 37b3e362238fdcd4101cb38ec2cd815416fb775f[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Sun Apr 26 15:49:36 2026 +0700
+
+    choke:update #
+
+[33mcommit 7923fcb006243e330132c2c0f48f109f0015f2cf[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Wed Apr 22 16:55:42 2026 +0700
+
+    choke:update chat socket
+
+[33mcommit 9b1f10285cd953edae5275d0f625494913b07369[m[33m ([m[1;31mupstream/long[m[33m)[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Mon Apr 20 21:13:09 2026 +0700
+
+    choke:email
+
+[33mcommit afbcc167261ce9d38c394fd1c245433959a3775c[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Sat Apr 18 14:02:28 2026 +0700
+
+    choke: readme.readmemd
+
+[33mcommit f2893ad91eaaf81f713a86ca87baa62765664b28[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Thu Apr 16 16:41:09 2026 +0700
+
+    update payment email socket
+
+[33mcommit 4624fd8cc0d20ed07afd523736c04b0b4f60b427[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Wed Apr 15 14:47:21 2026 +0700
+
+    choke: uppdate payment
+
+[33mcommit c1a810398d4021ffba6f82da5a8a05aa05883ecc[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Fri Apr 10 17:15:12 2026 +0700
+
+    choke:momo key
+
+[33mcommit faa0da52b8b671d799d6dec5532b975779b7fd4d[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Thu Apr 9 16:12:21 2026 +0700
+
+    choke:update momo (Chua add key, doi 2 ngay dang ky doanh nghiep tao key), cai ngrok lay ma
+
+[33mcommit aa305274cd4780b8ca1198b22234823bea3907e8[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Mon Apr 6 16:55:52 2026 +0700
+
+    choke:update product , add order & order_order_items
+
+[33mcommit 43cd494ee92a165cde4c0a3e7fba85f775e726c6[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Sat Apr 4 16:26:28 2026 +0700
+
+    choke:update card
+
+[33mcommit 1121b78212ea11590e222e9d7dcc39ea2a291504[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Sun Mar 29 12:55:38 2026 +0700
+
+    Choke:Change request
+
+[33mcommit e96d8ec29b9c5ab013d44634dab6b4ad5aea3f56[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Fri Mar 27 13:49:50 2026 +0700
+
+    choke: Fix update avatar
+
+[33mcommit e3a352b172e25b24b033b801aecf15160f3d2a07[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Thu Mar 26 16:28:53 2026 +0700
+
+    test
+
+[33mcommit 11448e3067249ac8d786c309ff26983824c0b59a[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Tue Mar 24 16:57:49 2026 +0700
+
+    choke:Update products CRUD
+
+[33mcommit 1f2b1d4b5a81976c46274dbc887f6b291ae5758e[m
+Merge: ddac45f 91ae0a0
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Mon Mar 23 20:48:47 2026 +0700
+
+    choke: create mysql products
+
+[33mcommit 91ae0a0f7ba0d994d1ede9cbbfdce4de29a29563[m[33m ([m[1;31mupstream/main[m[33m)[m
+Author: Cong Le <daithan2k4@gmail.com>
+Date:   Sun Mar 22 15:49:05 2026 +0700
+
+    feat(user): implement avatar upload via MinIO
+
+[33mcommit ddac45fcd1fa16b878ccdafa90b4555ae04ff854[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Sat Mar 21 20:10:36 2026 +0700
+
+    choke: add profile
+
+[33mcommit 93c9b273d7c43743a57fc95312fb68446332e283[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Fri Mar 20 20:31:53 2026 +0700
+
+    choke: update avatar_url
+
+[33mcommit 533fbe42d51b5671a0fbe52e32013bc78ed9986a[m
+Author: Cong Le <daithan2k4@gmail.com>
+Date:   Fri Mar 20 19:14:00 2026 +0700
+
+    fix: correct Liquibase changelog file paths
+
+[33mcommit 8c1a480a26a8c721d19fdc62583e9f0724e96c5d[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Thu Mar 19 12:25:31 2026 +0700
+
+    choke:update uuid
+
+[33mcommit 4d855c706e8a1e86d61d1a535604cb7e40b48c41[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Tue Mar 17 20:18:47 2026 +0700
+
+    choke:update login and register
+
+[33mcommit 61fc9a66cb0d980c59cd451511ca9c7ea053c15c[m
+Merge: fb8161e d0c322a
+Author: Cong Le <daithan2k4@gmail.com>
+Date:   Mon Mar 16 17:43:14 2026 +0700
+
+    chore(db): add roles table and add role_id to users; migrate existing role values
+
+[33mcommit fb8161e76bf4084109f46aa358528c20a3c48c1e[m
+Author: Cong Le <daithan2k4@gmail.com>
+Date:   Mon Mar 16 16:03:36 2026 +0700
+
+    Update Makefile
+
+[33mcommit d0c322a350d098eae7f59a8f2a19908a694f470d[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Mon Mar 16 15:58:51 2026 +0700
+
+    choke: login and register
+
+[33mcommit 652d928da1335460f7064e947fd29a0af55f2e99[m
+Author: Cong Le <daithan2k4@gmail.com>
+Date:   Fri Mar 13 17:54:48 2026 +0700
+
+    feat(infra): setup liquibase migration and create users table with role enum
+
+[33mcommit 09b11da5137802dbdfb34f19dbf2a97d001ef802[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Thu Mar 12 23:35:13 2026 +0700
+
+    choke:refactor project to clean architecture
+
+[33mcommit 18e2e16e79bc318a780f56950bb127059dbaf692[m
+Author: Longgnguyen1 <nguyenvulongabc11@1gmail.1gmailcom>
+Date:   Sun Mar 8 19:09:15 2026 +0700
+
+    choke: create user file
+
+[33mcommit a011d7e9c1ba558d45dfa03ac0d479b85fe7cf8a[m
+Author: Cong Le <daithan2k4@gmail.com>
+Date:   Thu Feb 26 12:32:32 2026 +0700
+
+    chore: initial project setup
