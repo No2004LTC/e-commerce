@@ -15,7 +15,7 @@ public class ManageCustomerUseCase {
     private final CustomerRepository customerRepository;
 
     // Nghiệp vụ Tạo mới khách hàng tại quầy POS
-    public CustomerResponse createCustomer(String phone, String fullName, String notes) {
+    public CustomerResponse createCustomer(String phone, String fullName, String notes, String branchId) {
         customerRepository.findByPhone(phone).ifPresent(c -> {
             throw new RuntimeException("Số điện thoại khách hàng này đã tồn tại trên hệ thống chuỗi!");
         });
@@ -26,6 +26,7 @@ public class ManageCustomerUseCase {
         customer.setFullName(fullName);
         customer.setTotalSpent(BigDecimal.ZERO);
         customer.setNotes(notes);
+        customer.setBranchId(branchId);
         customer.updateCustomerTypeBasedOnSpent();
 
         Customer saved = customerRepository.save(customer);
@@ -57,9 +58,10 @@ public class ManageCustomerUseCase {
             entity.getPhone(),
             entity.getFullName(),
             entity.getCustomerType(),
-            entity.getTotalSpent(),
+            entity.getTotalSpent() != null ? entity.getTotalSpent() : BigDecimal.ZERO,
             entity.getDiscountPercentage(), // Đẩy trường tính toán % tự động cho FE
-            entity.getNotes()
+            entity.getNotes(),
+            entity.getBranchId()
         );
     }
 }

@@ -15,6 +15,7 @@ public class OrderItem {
 
     private String productId;
     private String productName;
+    @Column(name = "price_at_purchase", precision = 20, scale = 2)
     private BigDecimal priceAtPurchase;
     private int quantity;
 

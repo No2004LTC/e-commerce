@@ -10,6 +10,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CreateProductUseCase {
     private final ProductService productService;
+    private final ecommerce.example.ecommerce.domain.Category.CategoryRepository categoryRepository;
 
     @Transactional
     public ecommerce.example.ecommerce.application.dto.Product execute(ProductRequest request, String ownerId) {
@@ -27,9 +28,27 @@ public class CreateProductUseCase {
         entity.setSoldQuantity(0);
         entity.setStatus("AVAILABLE");
 
+        if (request.categoryId() != null && !request.categoryId().isBlank()) {
+            categoryRepository.findById(new ecommerce.example.ecommerce.domain.Category.CategoryId(request.categoryId()))
+                    .ifPresent(category -> {
+                        entity.setCategory(category);
+                        entity.setCategoryId(request.categoryId());
+                    });
+        }
+
         ecommerce.example.ecommerce.domain.products.Product saved = productService.save(entity);
 
-      return new ecommerce.example.ecommerce.application.dto.Product(
+        ecommerce.example.ecommerce.application.dto.CategoryDTO categoryDto = null;
+        if (saved.getCategory() != null) {
+            categoryDto = ecommerce.example.ecommerce.application.dto.CategoryDTO.builder()
+                .id(saved.getCategory().getId().getValue())
+                .name(saved.getCategory().getName())
+                .slug(saved.getCategory().getSlug())
+                .parentId(saved.getCategory().getParentId())
+                .build();
+        }
+
+        return new ecommerce.example.ecommerce.application.dto.Product(
                 saved.getId().getValue(),
                 saved.getOwnerId(),       
                 saved.getProductCode(),  
@@ -41,7 +60,8 @@ public class CreateProductUseCase {
                 saved.getSoldQuantity(),  
                 saved.getWarehouse(),     
                 saved.getSupplier(),     
-                saved.getStatus()         
+                saved.getStatus(),
+                categoryDto
         );
     }
 }

@@ -1,6 +1,6 @@
 -- liquibase formatted sql
 
--- changeset ltc:202605101507
+-- changeset ltc:202605101510
 -- comment: create_product_reviews_table
 CREATE TABLE IF NOT EXISTS product_reviews (
     id VARCHAR(36) PRIMARY KEY,

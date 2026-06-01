@@ -13,6 +13,7 @@ public interface UserRepository {
     Optional<User> findById(UserId id);
     void deleteById(UserId id);
     User persist(User user);
+    User saveAndFlush(User user);
 
     /**
      * Tìm tất cả các chi nhánh (branches) thuộc quyền quản lý của một cửa hàng lớn.
@@ -20,4 +21,8 @@ public interface UserRepository {
      * @return Danh sách User chi nhánh có parentId khớp
      */
     List<User> findByParentId(String parentId);
+
+    List<User> findAll();
+
+    List<User> searchHierarchical(String keyword);
 }

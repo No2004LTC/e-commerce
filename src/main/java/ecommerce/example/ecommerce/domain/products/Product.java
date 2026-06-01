@@ -15,7 +15,12 @@ public class Product {
     @Column(name = "owner_id", nullable = false)
     private String ownerId; 
     @Column(name = "category_id")
-    private String categoryId;  
+    private String categoryId;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id", insertable = false, updatable = false)
+    private ecommerce.example.ecommerce.domain.Category.Category category;
+
     @Column(name = "product_code", unique = true, nullable = false)
     private String productCode;
 
@@ -54,5 +59,13 @@ public class Product {
 
     public void setStock(Integer stock) {
         this.stockQuantity = stock;
+    }
+
+    public void setBranchId(String branchId) {
+        this.ownerId = branchId;
+    }
+
+    public String getBranchId() {
+        return this.ownerId;
     }
 }

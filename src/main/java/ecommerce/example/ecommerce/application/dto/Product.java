@@ -14,5 +14,6 @@ public record Product(
     Integer soldQuantity,
     String warehouse,
     String supplier,
-    String status 
+    String status,
+    CategoryDTO category
 ) {}

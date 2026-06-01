@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -42,8 +43,8 @@ import java.util.Random;
 @Slf4j
 public class PlaceOrderUseCase {
 
-    private static final String[] HO = {"Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Vũ", "Phan", "Đỗ", "Bùi"};
-    private static final String[] DEM_TEN = {"Hoàng Anh", "Việt Anh", "Tuấn Anh", "Minh Khôi", "Gia Bảo", "Quốc Anh", "Đức Minh"};
+    private static final String[] HO = {"Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Vũ", "Phan", "Đỗ", "Bùi", "Đặng"};
+    private static final String[] DEM_TEN = {"Hoàng Anh", "Việt Anh", "Tuấn Anh", "Minh Khôi", "Gia Bảo", "Quốc Anh", "Đức Minh", "Lê Thành Công", "Phạm Kiều Chinh"};
 
     private final CartGateway cartGateway;
     private final OrderRepository orderRepository;
@@ -53,7 +54,7 @@ public class PlaceOrderUseCase {
     private final ProductRepository productRepository;     // ✅ Domain interface
 
     @Transactional
-    public String execute(String usernameOrId, String customerPhone, String paymentMethod) throws Exception {
+    public Order execute(String orderId, String usernameOrId, String customerPhone, String paymentMethod, String explicitSellerId) throws Exception {
         try {
             // ── Bước 1: Tra cứu danh tính người dùng ──────────────────────────────
             var user = userRepository.findByEmail(usernameOrId)
@@ -62,6 +63,56 @@ public class PlaceOrderUseCase {
 
             String realEmail = user.getEmail();
             log.info("[PLACE ORDER] User: {} | Email: {}", usernameOrId, realEmail);
+
+            // Bóc tách thông tin tài khoản đang đăng nhập trực quầy POS qua SecurityContextHolder.getPrincipal()
+            String tempUsername = null;
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() != null) {
+                Object principal = auth.getPrincipal();
+                if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+                    tempUsername = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+                } else {
+                    tempUsername = principal.toString();
+                }
+            }
+            if (tempUsername == null || tempUsername.isBlank() || "anonymousUser".equals(tempUsername)) {
+                tempUsername = usernameOrId;
+            }
+            final String finalUsername = tempUsername;
+
+            java.util.Optional<ecommerce.example.ecommerce.domain.user.User> loggedInUserOpt = userRepository.findByEmail(finalUsername)
+                    .or(() -> userRepository.findByUsername(finalUsername));
+            if (loggedInUserOpt.isEmpty() && finalUsername.length() == 36) {
+                try {
+                    loggedInUserOpt = userRepository.findById(new ecommerce.example.ecommerce.domain.user.UserId(finalUsername));
+                } catch (Exception e) {
+                    log.warn("[PLACE ORDER] finalUsername is not a valid UserId UUID format: {}", finalUsername);
+                }
+            }
+            var loggedInUser = loggedInUserOpt.orElse(user);
+
+            // sellerId = ID thực của chi nhánh đang đứng quầy (hoặc chi nhánh được chọn tường minh từ POS)
+            String actualSellerId = (explicitSellerId != null && !explicitSellerId.isBlank()) 
+                    ? explicitSellerId 
+                    : loggedInUser.getId().toString();
+
+            // ── Bóc tách thông tin tên chi nhánh đang bán tại quầy POS ──────────
+            String sellerName = null;
+            try {
+                var actualSellerOpt = userRepository.findById(new ecommerce.example.ecommerce.domain.user.UserId(actualSellerId));
+                if (actualSellerOpt.isPresent()) {
+                    var actualSeller = actualSellerOpt.get();
+                    sellerName = actualSeller.getFullName() != null && !actualSeller.getFullName().isBlank()
+                            ? actualSeller.getFullName() : actualSeller.getUsername();
+                }
+            } catch (Exception e) {
+                log.warn("[PLACE ORDER] Không thể tra cứu tên chi nhánh từ actualSellerId: {}", e.getMessage());
+            }
+
+            if (sellerName == null || sellerName.isBlank()) {
+                sellerName = loggedInUser.getFullName() != null && !loggedInUser.getFullName().isBlank()
+                        ? loggedInUser.getFullName() : loggedInUser.getUsername();
+            }
 
             // ── Bước 2: Lấy giỏ hàng từ Redis ────────────────────────────────────
             Cart cart = cartGateway.findByUserId(usernameOrId)
@@ -72,16 +123,17 @@ public class PlaceOrderUseCase {
             }
 
             // ── Bước 3: Tra cứu CRM theo SĐT & xử lý tạo tự động khách hàng vãng lai ──
+            String branchId = loggedInUser.getId().toString();
             Customer matchedCustomer = null;
 
             if (customerPhone == null || customerPhone.isBlank()) {
                 // Tự động tạo ngẫu nhiên khách hàng vãng lai mới
-                matchedCustomer = generateRandomWalkInCustomer();
+                matchedCustomer = generateRandomWalkInCustomer(branchId);
             } else {
                 matchedCustomer = customerRepository.findByPhone(customerPhone).orElse(null);
                 if (matchedCustomer == null) {
                     // Nếu không có trong DB nhưng nhập SĐT, tạo mới khách hàng với SĐT này
-                    matchedCustomer = createNewCustomerWithPhone(customerPhone);
+                    matchedCustomer = createNewCustomerWithPhone(customerPhone, branchId);
                 }
             }
 
@@ -143,21 +195,37 @@ public class PlaceOrderUseCase {
 
             // ── Bước 5: Tạo và lưu Order vào MySQL ────────────────────────────────
             String customerId = (matchedCustomer != null) ? matchedCustomer.getId() : null;
-            String sellerName = user.getFullName() != null && !user.getFullName().isBlank()
-                    ? user.getFullName()
-                    : user.getUsername();
+            String finalOrderId = orderId != null && !orderId.isBlank() ? orderId : UUID.randomUUID().toString();
+
+            // Tên khách hàng hiển thị: ưu tiên tên CRM (họ tên tiếng Việt thuần túy), tránh hiển thị email thô kệch trên hóa đơn
+            String buyerDisplayName = null;
+            if (matchedCustomer != null && matchedCustomer.getFullName() != null && !matchedCustomer.getFullName().isBlank()) {
+                buyerDisplayName = matchedCustomer.getFullName();
+            }
+            if (buyerDisplayName == null || buyerDisplayName.isBlank() || buyerDisplayName.contains("@")) {
+                Random random = new Random();
+                String hoName = HO[random.nextInt(HO.length)];
+                String demTenName = DEM_TEN[random.nextInt(DEM_TEN.length)];
+                buyerDisplayName = hoName + " " + demTenName;
+                if (matchedCustomer != null) {
+                    matchedCustomer.setFullName(buyerDisplayName);
+                    customerRepository.save(matchedCustomer);
+                }
+            }
+
+            // sellerId is resolved at the beginning of the method
 
             Order order = Order.builder()
-                    .id(UUID.randomUUID().toString())
-                    .buyerId(realEmail)
-                    .sellerId(sellerName) // Tuyệt đối không lưu chuỗi UUID thô
-                    .sellerName(sellerName) // Thiết lập tên Người bán
+                    .id(finalOrderId)
+                    .buyerId(buyerDisplayName)   // Lưu tên khách hàng Việt Nam — không lưu email thô
+                    .sellerId(actualSellerId)    // Lưu UUID thực của chi nhánh đứng quầy
+                    .sellerName(sellerName)      // Tên hiển thị chi nhánh — JOIN query sẽ dùng để nhóm biểu đồ
                     .customerId(customerId)
                     .totalAmount(finalTotal)
-                    .status("PAID") // Đặt trực tiếp trạng thái PAID để POS in hóa đơn luôn
-                    .paymentMethod(paymentMethod != null && !paymentMethod.isBlank() ? paymentMethod : "CHUYỂN KHOẢN") // Dùng paymentMethod truyền lên
-                    .paymentStatus("SUCCESS")      // Thanh toán thành công
-                    .items(orderItems)   // CASCADE ALL: OrderItems được lưu cùng Order
+                    .status("PAID")              // Đặt trực tiếp trạng thái PAID để POS in hóa đơn luôn
+                    .paymentMethod(paymentMethod != null && !paymentMethod.isBlank() ? paymentMethod : "CHUYỂN KHOẢN")
+                    .paymentStatus("SUCCESS")    // Thanh toán thành công
+                    .items(orderItems)           // CASCADE ALL: OrderItems được lưu cùng Order
                     .build();
 
             // Bắt buộc thiết lập mối quan hệ liên kết ngược lại dẫn về đơn hàng cha để Hibernate lưu order_id
@@ -166,8 +234,8 @@ public class PlaceOrderUseCase {
             }
 
             orderRepository.save(order);
-            log.info("[PLACE ORDER] Đơn #{} PAID | {} items | {} VNĐ | PT: CHUYỂN KHOẢN",
-                    order.getId(), orderItems.size(), finalTotal);
+            log.info("[PLACE ORDER] Đơn #{} PAID | {} items | {} VNĐ | PT: {}",
+                    order.getId(), orderItems.size(), finalTotal, order.getPaymentMethod());
 
             // ── Bước 6: Xóa giỏ hàng Redis sau khi đặt thành công ─────────────────
             cartGateway.deleteByUserId(usernameOrId);
@@ -186,8 +254,8 @@ public class PlaceOrderUseCase {
                         finalTotal, matchedCustomer.getTotalSpent(), matchedCustomer.getCustomerType());
             }
 
-            // ── Bước 8: Trả về URL thanh toán VietQR ──────────────────────────────
-            return vietQRService.createPaymentUrl(order);
+            // ── Bước 8: Trả về thực thể đơn hàng ──────────────────────────────
+            return order;
 
         } catch (UseCaseException e) {
             log.error("[PLACE ORDER ERROR] Lỗi nghiệp vụ đặt hàng: ", e);
@@ -199,7 +267,7 @@ public class PlaceOrderUseCase {
     }
 
     // Helper: Sinh ngẫu nhiên khách hàng vãng lai mới
-    private Customer generateRandomWalkInCustomer() {
+    private Customer generateRandomWalkInCustomer(String branchId) {
         Random random = new Random();
         int randomNumber = 1000 + random.nextInt(9000); // Sinh ngẫu nhiên từ 1000 đến 9999
         String hoName = HO[random.nextInt(HO.length)];
@@ -227,13 +295,14 @@ public class PlaceOrderUseCase {
         newCustomer.setCustomerType("NEW");
         newCustomer.setTotalSpent(BigDecimal.ZERO);
         newCustomer.setNotes("Khách vãng lai tại quầy POS (Tự động sinh)");
+        newCustomer.setBranchId(branchId);
 
-        log.info("[CRM AUTO] Đã tự động tạo khách hàng vãng lai mới: Phone={}, Name={}", phone, fullName);
+        log.info("[CRM AUTO] Đã tự động tạo khách hàng vãng lai mới: Phone={}, Name={}, BranchId={}", phone, fullName, branchId);
         return customerRepository.save(newCustomer);
     }
 
     // Helper: Tạo nhanh khách hàng mới khi quầy POS nhập SĐT chưa có trong DB
-    private Customer createNewCustomerWithPhone(String phone) {
+    private Customer createNewCustomerWithPhone(String phone, String branchId) {
         Random random = new Random();
         int randomNumber = 1000 + random.nextInt(9000);
         String hoName = HO[random.nextInt(HO.length)];
@@ -247,8 +316,9 @@ public class PlaceOrderUseCase {
         newCustomer.setCustomerType("NEW");
         newCustomer.setTotalSpent(BigDecimal.ZERO);
         newCustomer.setNotes("Khách mới đăng ký qua SĐT tại quầy POS");
+        newCustomer.setBranchId(branchId);
 
-        log.info("[CRM AUTO] Đã tạo khách hàng mới theo SĐT quầy POS: Phone={}, Name={}", phone, fullName);
+        log.info("[CRM AUTO] Đã tạo khách hàng mới theo SĐT quầy POS: Phone={}, Name={}, BranchId={}", phone, fullName, branchId);
         return customerRepository.save(newCustomer);
     }
 }

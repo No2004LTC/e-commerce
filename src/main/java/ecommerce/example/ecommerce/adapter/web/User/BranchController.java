@@ -40,21 +40,61 @@ public class BranchController {
     // GET /api/branches — Lấy danh sách chi nhánh con của cửa hàng đang đăng nhập
     // =========================================================================
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> getBranches(Authentication auth) {
-        String currentUserId = resolveUserId(auth);
+    public ResponseEntity<?> getBranches(Authentication auth) {
+        User currentUser = userRepository.findByEmail(auth.getName())
+            .or(() -> userRepository.findByUsername(auth.getName()))
+            .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại: " + auth.getName()));
 
-        List<User> branches = userRepository.findByParentId(currentUserId);
+        if (currentUser.getRole() != null && "ROLE_ADMIN".equalsIgnoreCase(currentUser.getRole().getName())) {
+            // Admin: Trả về danh sách toàn bộ các Chi nhánh lớn độc lập (ROLE_SHOP_OWNER) và danh sách con của từng chuỗi
+            List<User> shopOwners = userRepository.findAll().stream()
+                .filter(u -> u.getRole() != null && "ROLE_SHOP_OWNER".equalsIgnoreCase(u.getRole().getName()))
+                .collect(Collectors.toList());
 
-        List<Map<String, Object>> result = branches.stream()
-            .map(u -> Map.<String, Object>of(
-                "id",       u.getId().toString(),
-                "username", u.getUsername(),
-                "email",    u.getEmail(),
-                "parentId", currentUserId
-            ))
-            .collect(Collectors.toList());
+            List<Map<String, Object>> result = new java.util.ArrayList<>();
+            for (User owner : shopOwners) {
+                List<User> children = userRepository.findByParentId(owner.getId().toString());
+                List<Map<String, Object>> childMaps = children.stream()
+                    .map(c -> {
+                        Map<String, Object> m = new java.util.HashMap<>();
+                        m.put("id", c.getId().toString());
+                        m.put("username", c.getUsername());
+                        m.put("email", c.getEmail());
+                        m.put("role", c.getRole() != null ? c.getRole().getName() : "ROLE_BRANCH");
+                        m.put("parentId", owner.getId().toString());
+                        return m;
+                    })
+                    .collect(Collectors.toList());
 
-        return ResponseEntity.ok(result);
+                Map<String, Object> ownerMap = new java.util.HashMap<>();
+                ownerMap.put("id", owner.getId().toString());
+                ownerMap.put("username", owner.getUsername());
+                ownerMap.put("email", owner.getEmail());
+                ownerMap.put("role", owner.getRole() != null ? owner.getRole().getName() : "ROLE_SHOP_OWNER");
+                ownerMap.put("branches", childMaps);
+                result.add(ownerMap);
+            }
+            return ResponseEntity.ok(result);
+        } else {
+            // Shop Owner hoặc Chi nhánh con
+            String currentUserId = currentUser.getId().toString();
+            if (currentUser.getParentId() != null && !currentUser.getParentId().isBlank()) {
+                currentUserId = currentUser.getParentId();
+            }
+            List<User> branches = userRepository.findByParentId(currentUserId);
+            List<Map<String, Object>> result = branches.stream()
+                .map(u -> {
+                    Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("id", u.getId().toString());
+                    m.put("username", u.getUsername());
+                    m.put("email", u.getEmail());
+                    m.put("parentId", u.getParentId());
+                    m.put("role", u.getRole() != null ? u.getRole().getName() : "ROLE_BRANCH");
+                    return m;
+                })
+                .collect(Collectors.toList());
+            return ResponseEntity.ok(result);
+        }
     }
 
     // =========================================================================

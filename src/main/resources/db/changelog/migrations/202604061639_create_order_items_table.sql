@@ -1,6 +1,4 @@
--- liquibase formatted sql
-
--- changeset ltc:202604061639
+-- changeset ltc:202604061640
 -- comment: oder_item
     CREATE TABLE IF NOT EXISTS order_items (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

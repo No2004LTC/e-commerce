@@ -57,7 +57,8 @@ public class MySQLCustomerRepositoryAdapter implements CustomerRepository {
             entity.getFullName(),
             entity.getCustomerType(),
             entity.getTotalSpent(),
-            entity.getNotes()
+            entity.getNotes(),
+            entity.getBranchId()
         );
     }
 
@@ -70,6 +71,7 @@ public class MySQLCustomerRepositoryAdapter implements CustomerRepository {
         entity.setCustomerType(domain.getCustomerType());
         entity.setTotalSpent(domain.getTotalSpent());
         entity.setNotes(domain.getNotes());
+        entity.setBranchId(domain.getBranchId());
         return entity;
     }
 }

@@ -17,13 +17,19 @@ public class Order {
     private String buyerId;
     private String sellerId;
 
-    @Column(name = "seller_name")
+    /**
+     * Tên hiển thị chi nhánh bán — chỉ dùng cho serialization JSON/response,
+     * KHÔNG map xuống DB (tránh lỗi Unknown column khi bảng chưa có cột này).
+     * Giá trị được tính động từ LEFT JOIN users trong analytics query.
+     */
+    @Transient
     private String sellerName;
 
+    @Column(name = "total_amount", precision = 20, scale = 2)
     private BigDecimal totalAmount;
     private String status;
 
-    @Transient
+    @Column(name = "payment_method")
     @Builder.Default
     private String paymentMethod = "CHUYỂN KHOẢN";
 

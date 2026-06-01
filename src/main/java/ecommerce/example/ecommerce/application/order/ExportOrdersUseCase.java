@@ -71,7 +71,7 @@ public class ExportOrdersUseCase {
 
             // Header Row
             Row headerRow = orderSheet.createRow(0);
-            String[] headers = {"Mã đơn hàng", "Email người mua", "Tổng tiền (VNĐ)", "Trạng thái", "Ngày đặt"};
+            String[] headers = {"Mã đơn hàng", "Chi nhánh bán", "Email người mua", "Tổng tiền (VNĐ)", "Phương thức TT", "Trạng thái", "Ngày đặt"};
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
@@ -87,21 +87,33 @@ public class ExportOrdersUseCase {
                 c0.setCellValue(order.getId());
                 c0.setCellStyle(centerStyle);
 
+                // Cột Chi nhánh bán: ưu tiên sellerName, fallback sellerId
                 Cell c1 = row.createCell(1);
-                c1.setCellValue(order.getBuyerId());
+                String sellerDisplay = order.getSellerName() != null && !order.getSellerName().isBlank()
+                    ? order.getSellerName()
+                    : (order.getSellerId() != null ? order.getSellerId() : "");
+                c1.setCellValue(sellerDisplay);
                 c1.setCellStyle(borderedStyle);
 
                 Cell c2 = row.createCell(2);
-                c2.setCellValue(order.getTotalAmount() != null ? order.getTotalAmount().doubleValue() : 0.0);
-                c2.setCellStyle(moneyStyle);
+                c2.setCellValue(order.getBuyerId());
+                c2.setCellStyle(borderedStyle);
 
                 Cell c3 = row.createCell(3);
-                c3.setCellValue(order.getStatus());
-                c3.setCellStyle(centerStyle);
+                c3.setCellValue(order.getTotalAmount() != null ? order.getTotalAmount().doubleValue() : 0.0);
+                c3.setCellStyle(moneyStyle);
 
                 Cell c4 = row.createCell(4);
-                c4.setCellValue(order.getCreatedAt() != null ? order.getCreatedAt().format(DATE_FMT) : "");
+                c4.setCellValue(order.getPaymentMethod() != null ? order.getPaymentMethod() : "");
                 c4.setCellStyle(centerStyle);
+
+                Cell c5 = row.createCell(5);
+                c5.setCellValue(order.getStatus());
+                c5.setCellStyle(centerStyle);
+
+                Cell c6 = row.createCell(6);
+                c6.setCellValue(order.getCreatedAt() != null ? order.getCreatedAt().format(DATE_FMT) : "");
+                c6.setCellStyle(centerStyle);
             }
 
             // Auto-size columns for orderSheet

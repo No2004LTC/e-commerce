@@ -1,7 +1,6 @@
 package ecommerce.example.ecommerce.adapter.web.payment;
 
 import ecommerce.example.ecommerce.infrastructure.email.EmailService;
-import ecommerce.example.ecommerce.application.products.ProductService;
 import ecommerce.example.ecommerce.domain.order.Order;
 import ecommerce.example.ecommerce.domain.order.OrderRepository;
 import ecommerce.example.ecommerce.infrastructure.payment.vietqr.VietQRService; 
@@ -19,7 +18,6 @@ import java.util.Map;
 @Slf4j
 public class PaymentController {
     private final OrderRepository orderRepository;
-    private final ProductService productService;
     private final EmailService emailService;
     private final VietQRService vietQRService; 
 

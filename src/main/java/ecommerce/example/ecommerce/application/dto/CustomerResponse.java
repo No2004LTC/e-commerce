@@ -10,5 +10,6 @@ public record CustomerResponse(
     String customerType,
     BigDecimal totalSpent,
     int discountPercentage,
-    String notes
+    String notes,
+    String branchId
 ) {}

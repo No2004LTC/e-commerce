@@ -24,4 +24,7 @@ public class CustomerEntity {
     private BigDecimal totalSpent;
     
     private String notes;
+
+    @Column(name = "branch_id")
+    private String branchId;
 }

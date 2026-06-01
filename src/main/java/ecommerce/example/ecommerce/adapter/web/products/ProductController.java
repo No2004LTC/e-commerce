@@ -33,6 +33,7 @@ public class ProductController {
     private final ImportProductsUseCase importProductsUseCase;
     private final MinioProperties minioProperties;
     private final UserRepository userRepository;
+    private final ecommerce.example.ecommerce.domain.Category.CategoryRepository categoryRepository;
 
     private String resolveUserId(Authentication auth) {
         return userRepository.findByEmail(auth.getName())
@@ -146,6 +147,38 @@ public class ProductController {
     }
 
     // =========================================================================
+    // AUTHENTICATED: Import hàng loạt sản phẩm từ file Excel (theo branchId)
+    // =========================================================================
+    @PostMapping(value = "/{branchId}/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> importProducts(
+            @PathVariable String branchId,
+            @RequestParam("file") MultipartFile file) {
+
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("message", "File Excel trống, vui lòng chọn tệp hợp lệ!"));
+        }
+
+        try {
+            int importedCount = importProductsUseCase.execute(file, branchId);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Import danh sách sản phẩm thành công! Đã thêm " + importedCount + " mặt hàng mới."
+            ));
+        } catch (ecommerce.example.ecommerce.application.common.UseCaseException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "message", "Đã xảy ra lỗi khi đọc dữ liệu tệp Excel: " + e.getMessage()
+            ));
+        }
+    }
+
+    // =========================================================================
     // AUTHENTICATED: Cập nhật thông tin sản phẩm
     // =========================================================================
     @PutMapping("/{id}")
@@ -168,6 +201,19 @@ public class ProductController {
         if (request.supplier() != null) entity.setSupplier(request.supplier());
         if (request.status() != null) entity.setStatus(request.status());
         
+        if (request.categoryId() != null) {
+            if (request.categoryId().isBlank()) {
+                entity.setCategory(null);
+                entity.setCategoryId(null);
+            } else {
+                categoryRepository.findById(new ecommerce.example.ecommerce.domain.Category.CategoryId(request.categoryId()))
+                        .ifPresent(category -> {
+                            entity.setCategory(category);
+                            entity.setCategoryId(request.categoryId());
+                        });
+            }
+        }
+
         // Gán ownerId bằng branchId từ query param nếu có, ngược lại dùng ownerId từ body
         String targetOwnerId = (branchId != null && !branchId.isBlank()) ? branchId : request.ownerId();
         if (targetOwnerId != null && !targetOwnerId.isBlank()) {
@@ -195,6 +241,15 @@ public class ProductController {
     // =========================================================================
     private Product toDto(ecommerce.example.ecommerce.domain.products.Product entity) {
         String imageUrl = resolveImageUrl(entity.getProductImageUrl());
+        ecommerce.example.ecommerce.application.dto.CategoryDTO categoryDto = null;
+        if (entity.getCategory() != null) {
+            categoryDto = ecommerce.example.ecommerce.application.dto.CategoryDTO.builder()
+                .id(entity.getCategory().getId().getValue())
+                .name(entity.getCategory().getName())
+                .slug(entity.getCategory().getSlug())
+                .parentId(entity.getCategory().getParentId())
+                .build();
+        }
         return new Product(
             entity.getId().getValue(),
             entity.getOwnerId(),
@@ -207,7 +262,8 @@ public class ProductController {
             entity.getSoldQuantity(),
             entity.getWarehouse(),
             entity.getSupplier(),
-            entity.getStatus()
+            entity.getStatus(),
+            categoryDto
         );
     }
 

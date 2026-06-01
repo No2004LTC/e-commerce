@@ -25,6 +25,9 @@ docker-compose.override.yml
 
 # Env files
 .env
+*.env
+application-local.properties
+application-secret.properties
 
 # MinIO uploads (local test)
 uploads/

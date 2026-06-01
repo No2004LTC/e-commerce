@@ -15,6 +15,7 @@ public class Customer {
     private String customerType; // NEW, POTENTIAL, LOYAL, VIP, SUPER_VIP, DIAMOND
     private BigDecimal totalSpent;
     private String notes;
+    private String branchId;
 
     // Hàm lõi nghiệp vụ: Tự động tính % giảm giá mặc định dựa trên số tiền tích lũy
     public int getDiscountPercentage() {

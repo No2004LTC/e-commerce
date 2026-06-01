@@ -173,6 +173,12 @@
                             <artifactId>lombok</artifactId>
                         </path>
                     </annotationProcessorPaths>
+                    <!-- Suppress deprecation warnings from Spring Data Redis serializers
+                         that are marked deprecated in Spring Data Redis 3.x/4.x
+                         but not yet removed (GenericJackson2JsonRedisSerializer). -->
+                    <compilerArgs>
+                        <arg>-Xlint:-deprecation</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>

@@ -52,22 +52,50 @@ public class OrderController {
                 .or(() -> userRepository.findByUsername(auth.getName()))
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại: " + auth.getName()));
 
-        String targetBranchId = branchId;
-
-        // Tự động bốc mã ID chi nhánh của tài khoản nếu có vai trò ROLE_BRANCH hoặc ROLE_STAFF
-        boolean isBranchOrStaff = user.getRole() != null && 
-                ("ROLE_BRANCH".equalsIgnoreCase(user.getRole().getName()) || 
+        boolean isAdmin = user.getRole() != null &&
+                "ROLE_ADMIN".equalsIgnoreCase(user.getRole().getName());
+        boolean isBranchOrStaff = user.getRole() != null &&
+                ("ROLE_BRANCH".equalsIgnoreCase(user.getRole().getName()) ||
                  "ROLE_STAFF".equalsIgnoreCase(user.getRole().getName()));
 
+        List<Order> orders;
+
         if (isBranchOrStaff) {
-            targetBranchId = user.getId().toString();
-        } else if (targetBranchId == null || targetBranchId.isBlank()) {
-            targetBranchId = user.getId().toString();
+            // Branch/Staff: always scoped to their own branch subtree
+            String targetId = user.getId().toString();
+            log.info("[GET ORDERS] Branch/Staff user {} → scoping to branchId={}", user.getUsername(), targetId);
+            orders = orderRepository.findByBranchOrParentChain(targetId);
+        } else if (isAdmin && (branchId == null || branchId.isBlank())) {
+            // Admin with no filter → return ALL orders across every branch
+            log.info("[GET ORDERS] Admin user {} → returning ALL orders", user.getUsername());
+            orders = orderRepository.findAll();
+        } else {
+            // Admin with explicit branchId filter → scope to that branch subtree
+            String targetId = (branchId != null && !branchId.isBlank()) ? branchId : user.getId().toString();
+            log.info("[GET ORDERS] Filtered query for branchId={}", targetId);
+            orders = orderRepository.findByBranchOrParentChain(targetId);
         }
 
-        List<Order> orders = orderRepository.findByBranchOrParentChain(targetBranchId);
+        // Enrich seller name from DB for display
+        for (Order order : orders) {
+            if (order.getSellerId() != null && !order.getSellerId().isBlank()) {
+                try {
+                    java.util.UUID.fromString(order.getSellerId());
+                    userRepository.findById(new ecommerce.example.ecommerce.domain.user.UserId(order.getSellerId()))
+                            .ifPresent(u -> {
+                                String name = u.getFullName() != null && !u.getFullName().isBlank()
+                                        ? u.getFullName()
+                                        : u.getUsername();
+                                order.setSellerName(name);
+                            });
+                } catch (IllegalArgumentException e) {
+                    order.setSellerName(order.getSellerId());
+                }
+            }
+        }
         return ResponseEntity.ok(orders);
     }
+
 
     // =========================================================================
     // POST /api/orders — Đặt hàng
@@ -82,17 +110,13 @@ public class OrderController {
         String buyerId = auth.getName(); // email hoặc username từ JWT
 
         // Trích xuất SĐT khách hàng CRM từ payload POS (nếu có)
+        String orderId = (payload != null) ? payload.get("id") : null;
         String customerPhone = (payload != null) ? payload.get("customerPhone") : null;
         String paymentMethod = (payload != null) ? payload.get("paymentMethod") : "CHUYỂN KHOẢN";
+        String sellerId = (payload != null) ? payload.get("sellerId") : null;
 
-        // Thực thi luồng đặt hàng hoàn chỉnh
-        placeOrderUseCase.execute(buyerId, customerPhone, paymentMethod);
-
-        // Lấy đơn hàng vừa tạo (sắp xếp theo ID descending để lấy mới nhất)
-        Order latestOrder = orderRepository.findByBuyerId(buyerId)
-                .stream()
-                .max((o1, o2) -> o1.getCreatedAt().compareTo(o2.getCreatedAt()))
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng vừa tạo"));
+        // Thực thi luồng đặt hàng hoàn chỉnh và lấy Order trực tiếp
+        Order latestOrder = placeOrderUseCase.execute(orderId, buyerId, customerPhone, paymentMethod, sellerId);
 
         double amount = latestOrder.getTotalAmount() != null
                 ? latestOrder.getTotalAmount().doubleValue()

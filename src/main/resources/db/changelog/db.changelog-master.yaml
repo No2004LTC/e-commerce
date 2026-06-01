@@ -1,29 +1,64 @@
 databaseChangeLog:
+
+  # ═══════════════════════════════════════════════════════════════
+  # LEGACY MIGRATIONS — kept for Liquibase history tracking.
+  # These changesets are already applied to production DB and must
+  # stay registered so Liquibase does not re-execute them.
+  # DO NOT remove entries from this block.
+  # ═══════════════════════════════════════════════════════════════
   - include:
       file: db/changelog/migrations/20260313173603_create_user_table.sql
+
   - include:
       file: db/changelog/migrations/202603161714_create_role_table.sql
+
   - include:
-        file: db/changelog/migrations/202605101507_create_categories_table.sql
+      file: db/changelog/migrations/202605101507_create_categories_table.sql
+
   - include:
       file: db/changelog/migrations/202603232036_create_products_table.sql
+
   - include:
       file: db/changelog/migrations/202603251805_create_suppliers_table.sql
+
   - include:
       file: db/changelog/migrations/202604061639_create_orders_table.sql
+
   - include:
-        file: db/changelog/migrations/202605212151_create_customers_table.sql
+      file: db/changelog/migrations/202605212151_create_customers_table.sql
+
   - include:
       file: db/changelog/migrations/202604061639_create_order_items_table.sql
+
   - include:
-        file: db/changelog/migrations/202604161627_create_chat_message_table.sql
+      file: db/changelog/migrations/202604161627_create_chat_message_table.sql
+
   - include:
-        file: db/changelog/migrations/202605101507_create_product_reviews_table.sql
+      file: db/changelog/migrations/202605101507_create_product_reviews_table.sql
+
   - include:
-        file: db/changelog/migrations/202605101508_create_wishlists_table.sql
+      file: db/changelog/migrations/202605101508_create_wishlists_table.sql
+
   - include:
-        file: db/changelog/migrations/202605241600_add_parent_id_to_users_table.sql
+      file: db/changelog/migrations/202605241600_add_parent_id_to_users_table.sql
+
   - include:
-        file: db/changelog/migrations/202605252200_add_profile_fields_to_users_table.sql
+      file: db/changelog/migrations/202605252200_add_profile_fields_to_users_table.sql
+
   - include:
-        file: db/changelog/migrations/202605262000_add_seller_name_to_orders_table.sql
+      file: db/changelog/migrations/202605262000_add_seller_name_to_orders_table.sql
+
+  - include:
+      file: db/changelog/migrations/202605272100_add_payment_method_to_orders_table.sql
+
+  - include:
+      file: db/changelog/migrations/202605272200_add_branch_id_to_customers_table.sql
+
+  - include:
+      file: db/changelog/migrations/202606012200_add_metadata_to_chat_messages.sql
+
+  # ═══════════════════════════════════════════════════════════════
+  # NEW OPTIMIZED MIGRATIONS — added after schema stabilization.
+  # All future schema changes go below this line as new files.
+  # ═══════════════════════════════════════════════════════════════
+  # (next new migration here)

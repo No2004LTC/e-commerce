@@ -10,5 +10,6 @@ public record ProductRequest(
     String warehouse,
     String supplier,
     String status,
-    String ownerId
+    String ownerId,
+    String categoryId
 ) {}

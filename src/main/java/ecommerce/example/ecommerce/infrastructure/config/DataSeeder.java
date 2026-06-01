@@ -62,11 +62,23 @@ public class DataSeeder implements CommandLineRunner {
                     return roleRepository.save(new Role("ROLE_USER"));
                 });
 
-        // 2. LOGIC KIỂM TRA BÀNG USER RỖNG HOẶC TÀI KHOẢN ADMIN CHƯA TỒN TẠI (IDEMPOTENT INITIALIZATION)
-        boolean adminExists = userJpaRepository.findByUsername("admin").isPresent() 
-                || userJpaRepository.findByEmail("admin@gmail.com").isPresent();
-        if (!adminExists) {
-            log.info("Admin account (admin/admin@gmail.com) not found. Initializing default supreme Admin account...");
+        // 2. LOGIC KIỂM TRA BẢNG USER RỖNG HOẶC TÀI KHOẢN ADMIN CHƯA TỒN TẠI (IDEMPOTENT INITIALIZATION)
+        var adminOpt = userJpaRepository.findByUsername("admin")
+                .or(() -> userJpaRepository.findByEmail("admin@gmail.com"));
+
+        if (adminOpt.isPresent()) {
+            User existingAdmin = adminOpt.get();
+            // Nếu mật khẩu trong DB chưa được băm Argon2id (không bắt đầu bằng prefix băm $argon2id$) hoặc là chuỗi thô "admin"
+            if ("admin".equals(existingAdmin.getPassword()) || !existingAdmin.getPassword().startsWith("$argon2id$")) {
+                log.info("Mật khẩu tài khoản Admin hiện hành chưa được băm Argon2id. Tiến hành băm và cập nhật...");
+                existingAdmin.setPassword(passwordEncoder.encode("admin"));
+                userJpaRepository.save(existingAdmin);
+                log.info("Đã cập nhật mật khẩu băm Argon2id thành công cho tài khoản Admin!");
+            } else {
+                log.info("Tài khoản quản trị Admin đã tồn tại với mật khẩu được mã hóa an toàn.");
+            }
+        } else {
+            log.info("Tài khoản Admin chưa tồn tại. Bắt đầu khởi tạo tài khoản quản trị tối cao...");
 
             // 3. THÔNG TIN KHỞI TẠO TÀI KHOẢN ADMIN TỐI CAO
             String adminUuid = UUID.randomUUID().toString();
@@ -87,8 +99,6 @@ public class DataSeeder implements CommandLineRunner {
             log.info("INFO: Default Admin Account initialized successfully!");
             log.info("Default Admin Account Details - UUID: {}, Username: {}, Email: {}, Role: {}",
                     adminUuid, adminUser.getUsername(), adminUser.getEmail(), adminRole.getName());
-        } else {
-            log.info("Supreme Admin account already exists. Skipping default Admin initialization.");
         }
     }
 }

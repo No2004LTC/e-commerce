@@ -4,6 +4,8 @@ import ecommerce.example.ecommerce.domain.user.User;
 import ecommerce.example.ecommerce.domain.user.UserId;
 import ecommerce.example.ecommerce.domain.user.UserRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -36,4 +38,15 @@ public interface UserJpaRepository extends JpaRepository<User, UserId>, UserRepo
     default User persist(User user) {
         return save(user);
     }
+
+    @Override
+    @Query(value = "SELECT u.* FROM users u " +
+            "LEFT JOIN users parent ON u.parent_id = parent.id " +
+            "WHERE u.username LIKE CONCAT('%', :keyword, '%') " +
+            "OR u.email LIKE CONCAT('%', :keyword, '%') " +
+            "OR u.full_name LIKE CONCAT('%', :keyword, '%') " +
+            "OR parent.username LIKE CONCAT('%', :keyword, '%') " +
+            "OR u.parent_id IN (SELECT p.id FROM users p WHERE p.username LIKE CONCAT('%', :keyword, '%'))",
+            nativeQuery = true)
+    List<User> searchHierarchical(@Param("keyword") String keyword);
 }

@@ -7,12 +7,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class WishlistService {
     private final WishlistRepository wishlistRepository;
+
+    @Transactional
+    public List<String> getWishlistProductIds(String userId) {
+        return wishlistRepository.findByUserId(userId).stream()
+                .map(Wishlist::getProductId)
+                .toList();
+    }
 
     @Transactional
 public boolean toggleWishlist(String userId, String productId) {
