@@ -1,6 +1,6 @@
-# C2C E-commerce Backend
+# Shop-online Backend
 
-C2C E-commerce is a high-performance Consumer-to-Consumer platform built with Java 17, focusing on scalability, efficiency, and real-time user engagement. The project strictly adheres to Clean Architecture principles to ensure the business logic remains independent, maintainable, and easy to test.
+Shop-online is a high-performance Consumer-to-Consumer platform built with Java 17, focusing on scalability, efficiency, and real-time user engagement. The project strictly adheres to Clean Architecture principles to ensure the business logic remains independent, maintainable, and easy to test.
 
 ---
 
